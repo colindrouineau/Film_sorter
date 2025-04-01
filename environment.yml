@@ -1,0 +1,6 @@
+name: dev-MBF
+dependencies:
+  - python==3.11.4
+  - pymediainfo
+  - fuzzywuzzy
+  - python-Levenshtein
