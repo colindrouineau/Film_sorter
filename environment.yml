@@ -4,3 +4,4 @@ dependencies:
   - pymediainfo
   - fuzzywuzzy
   - python-Levenshtein
+  - pyinstaller
