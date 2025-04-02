@@ -5,3 +5,4 @@ dependencies:
   - fuzzywuzzy
   - python-Levenshtein
   - pyinstaller
+  - sqlalchemy
