@@ -64,33 +64,9 @@ def text_formatter(text, test=False):
     return formatted_text
 
 
-def significant_beginning(text, test=False):
-    text = punctuation_split(text)
-    # On enlève l'extension
-    text.pop()
-    n_sig_words = 0
-    i = 0
-    while n_sig_words < 2:
-        if text[i] not in STOP_WORDS_ENGLISH and text[i] not in STOP_WORDS_FRENCH:
-            n_sig_words += 1
-            print("sig:  ", text[i])
-        i += 1
-    sig_beg = " ".join(text[:i])
-    if test:
-        print(sig_beg)
-    return sig_beg
-
-
-# Computes the Levanshtein distance between 2 parts of 2 texts
-# The parts are selected by stopping after 2 significant words.
-def significant_str_distance(text1, text2):
-    return None
-
-
 if __name__ == "__main__":
     # Example usage
     file_path = "C:\\colin_films\\Dersou.Ouzala\\Dersou.Ouzala.mkv"
     extract_mkv_metadata(file_path, test=True)
     test_str = "Hello I'm COLIN. DROUINEAU 1253.MIDJ .mkv"
     text_formatter(test_str, test=True)
-    significant_beginning(test_str, test=True)
