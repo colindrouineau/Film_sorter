@@ -5,8 +5,7 @@ from CONFIG import *
 
 def significant_beginning(text, test=False):
     text = punctuation_split(text.lower())
-    # On enlève l'extension
-    text.pop()
+    text.pop()  # On enlève l'extension
     n_sig_words = 0
     i = 0
     last_recorded = 0
