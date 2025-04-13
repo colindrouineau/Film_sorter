@@ -35,12 +35,16 @@ def delete_empty_folder(folder_path):
         print(f"Error: {folder_path} : {e.strerror}")
 
 
+
+entries = os.listdir("C:\\colin_films\\Dersou.Ouzala")
+print(entries)
+"""
 # Example usage
 source_path = "C:\\colin_films\\time_mastersiki.uwu"
 destination_path = "C:\\colin_films\\TIME_MASTERS\\time_masters.mkv"  # Replace with your source file path
 move_and_rename_file(source_path, destination_path)
 
-
+"""
 '''
 
 file_path = "C:\\colin_films\\TIME_MASTERS\\time_masters.mkv"

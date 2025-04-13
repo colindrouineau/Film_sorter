@@ -13,7 +13,7 @@ def define_classe(db_name, row, table_name):
     Base = declarative_base()
 
     # Dynamically create column attributes
-    # Date (First item of columns) must be the primary key
+    # Film_title (First item of columns) must be the primary key
     column_definitions = {
         row[i][0]: Column(row[i][1], primary_key=(i == 0)) for i in range(len(row))
     }
