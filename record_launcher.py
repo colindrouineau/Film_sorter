@@ -1,7 +1,15 @@
+from CONFIG import *
 import os
+import db
+import utils as u
 
 
-def record(path_to_disk, new_name=None):
+def record(path_to_disk):
+    db.create_new_table(DB_NAME, COLUMNS, TABLE_NAME) # Creation of the db if not already there
+    
+    Disk_Numbers = db.get_column("Disk_number")
+    disk_number = u.punctuation_split(path_to_disk)[-1]
+
     # if new disque dur : do you want to rename it ?
     
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
@@ -10,6 +18,7 @@ def record(path_to_disk, new_name=None):
 
     # fonction qui parcourt et arrange tout, et en même temps que le parcours, remplit la base de données
     # la fonction doit aussi écrire le fichier "testé"
+
 
 
 

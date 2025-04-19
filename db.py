@@ -25,10 +25,11 @@ def define_classe(db_name, row, table_name):
     return engine, Base, User
 
 
-# row = list of [name str, value type]
-def create_new_table(db_name, row, table_name):
+# columns = list of [name str, value type]
+# Creates new table if it does not already exist.
+def create_new_table(db_name, columns, table_name):
     # Creates the class from the arguments.
-    engine, Base, _ = define_classe(db_name, row, table_name)
+    engine, Base, _ = define_classe(db_name, columns, table_name)
     # Create the table in the database
     Base.metadata.create_all(engine)
 
@@ -44,20 +45,20 @@ def is_in_table(db_name, table_name, column_names, row_id):
     return session.query(User).filter(User.film_name == row_id).first() is not None
 
 
-# Row = columns title, questions. Only corresponding questions should be selected
-# answer_row = answers
-def add_row(db_name, table_name, row, answer_row):
+# columns = columns title, questions. Only corresponding questions should be selected
+# row = answers
+def add_row(db_name, table_name, columns, row):
 
-    assert len(row) == len(answer_row), "One question should match one answer."
+    assert len(columns) == len(row), "One question should match one answer."
 
     # Creates the class from the arguments.
-    engine, _, User = define_classe(db_name, row, table_name)
+    engine, _, User = define_classe(db_name, columns, table_name)
 
     # Créer une session
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    attribute_values = {row[i][0]: answer_row[i][0] for i in range(len(answer_row))}
+    attribute_values = {columns[i][0]: row[i][0] for i in range(len(row))}
     # Instancier dynamiquement la classe User avec les valeurs d'attributs
     new_user = User(**attribute_values)
 
@@ -82,7 +83,7 @@ def query(
     film_duration=None,
     VO=None,
 ):
-    engine, Base, User = define_classe(db_name, columns, table_name)
+    engine, _, User = define_classe(db_name, columns, table_name)
 
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -103,4 +104,16 @@ def query(
 
     session.close()
 
+    return request_result
+
+
+def get_column(db_name, table_name, columns, column_name):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    request_result = session.query(User)
+    
+
+    session.close()
     return request_result

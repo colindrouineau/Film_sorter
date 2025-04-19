@@ -1,4 +1,5 @@
 import chardet
+from CONFIG import *
 
 ## No longer useful because the stop word list is directly written as a str.
 # def list_from_txt(file_path):
@@ -14,6 +15,21 @@ import chardet
 #
 #     content = content.split("\n")
 #     return content
+
+def punctuation_split(text):
+    splitting = []
+    word = ""
+    for c in text:
+        if c in PUNCTUATION:
+            if word != "":
+                splitting.append(word)
+            word = ""
+        else:
+            word += c
+    if word != "":
+        splitting.append(word)
+    return splitting
+
 
 def get_extension(file_name):
     return file_name.split(".")[-1]

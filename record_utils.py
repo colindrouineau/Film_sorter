@@ -2,6 +2,7 @@ from pymediainfo import MediaInfo
 from CONFIG import *
 import os
 import shutil
+import utils as u
 
 
 def convert_milliseconds(milliseconds):
@@ -26,6 +27,7 @@ def extract_video_metadata(file_path, test=False):
     for track in media_info.tracks:
         if track.track_type == "General":
             duration = convert_milliseconds(track.duration)
+            duration = str(duration[0]) + ' h ' + str(duration[1]) + ' m ' + str(duration[2]) + ' s '
         elif track.track_type == "Audio":
             languages.append(track.other_language[0])
         elif track.track_type == "Text":
@@ -39,23 +41,8 @@ def extract_video_metadata(file_path, test=False):
     return duration, languages, subtitles
 
 
-def punctuation_split(text):
-    splitting = []
-    word = ""
-    for c in text:
-        if c in PUNCTUATION:
-            if word != "":
-                splitting.append(word)
-            word = ""
-        else:
-            word += c
-    if word != "":
-        splitting.append(word)
-    return splitting
-
-
 def text_formatter(text, test=False):
-    punc_sep = punctuation_split(text)
+    punc_sep = u.punctuation_split(text)
     extension = punc_sep.pop()
     formatted_text = " ".join(punc_sep)
     formatted_text += "." + extension
