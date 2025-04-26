@@ -1,7 +1,10 @@
 from sqlalchemy import Integer, String, Boolean
 
 DB_NAME = "Film_sorter"
-COLUMNS = [["Film_title", String], ["Disk_number", Integer], ["VO", Boolean], ["Film_duration", String]]
+# Languages = "French, English, Russian" for ex
+# Film_duration = 2 h 50 m 41 s
+COLUMNS = [["Film_title", String], ["Disk_number", Integer], ["Film_duration", String], ["VO", Boolean], ["Languages", String], ["Subtitles", String], ["Original_film_title", String]]
+COLUMNS_TITLES = [element[0] for element in COLUMNS]
 TABLE_NAME = "Films"
 
 
@@ -41,6 +44,8 @@ STOP_WORDS_FRENCH = "a, ai, aie, aies, ait, après, as, auquel, avant, avec, ava
 STOP_WORDS_ENGLISH = STOP_WORDS_ENGLISH.split(", ") + ALPHABET
 STOP_WORDS_FRENCH = STOP_WORDS_FRENCH.split(", ") + ALPHABET
 MIN_STR_DIST = 50  # à déterminer
+POSSIBLE_EXTENSIONS = "mp4, avi, mkv, mov, flv, wmv, mpeg, mpg, webm, 3gp, m4v, mts, m2ts, vob, rm, rmvb, ogv, asf, divx, xvid, ts, mxf, h264, h265"
+POSSIBLE_EXTENSIONS = POSSIBLE_EXTENSIONS.split(", ")
 
 
 if __name__ == "__main__":

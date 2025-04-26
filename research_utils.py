@@ -1,5 +1,5 @@
 from fuzzywuzzy import fuzz
-from record_utils import punctuation_split
+from utils import punctuation_split
 from CONFIG import *
 
 

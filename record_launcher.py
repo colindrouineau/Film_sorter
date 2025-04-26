@@ -13,18 +13,29 @@ def record(path_to_disk):
     disk_number = u.punctuation_split(path_to_disk)[-1]
 
     if disk_number not in Disk_Numbers:
+        Disk_Numbers_unique = list(set(Disk_Numbers))
+        print('here are the different disk_numbers :', Disk_Numbers_unique)
         print("do you want to rename it ?")
+        disk_number = input()
         # Then have to check with .exe method.
 
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
     # Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres),
     # Date du record
+    # Name of the matching registered disk
+
+    
+
+    
+
+
 
     # fonction qui parcourt et arrange tout, et en même temps que le parcours, remplit la base de données
     # la fonction doit aussi écrire le fichier "testé"
 
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
+
 
     for entry in entries:
         print(entry)
