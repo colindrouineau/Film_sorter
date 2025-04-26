@@ -5,22 +5,23 @@ import utils as u
 
 
 def record(path_to_disk):
-    db.create_new_table(DB_NAME, COLUMNS, TABLE_NAME) # Creation of the db if not already there
-    
-    Disk_Numbers = db.get_column("Disk_number")
+    db.create_new_table(
+        DB_NAME, COLUMNS, TABLE_NAME
+    )  # Creation of the db if not already there
+
+    Disk_Numbers = db.get_column_as_list("Disk_number")
     disk_number = u.punctuation_split(path_to_disk)[-1]
 
-    # if new disque dur : do you want to rename it ?
-    
+    if disk_number not in Disk_Numbers:
+        print("do you want to rename it ?")
+        # Then have to check with .exe method.
+
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
-    # Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres), 
+    # Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres),
     # Date du record
 
     # fonction qui parcourt et arrange tout, et en même temps que le parcours, remplit la base de données
     # la fonction doit aussi écrire le fichier "testé"
-
-
-
 
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
