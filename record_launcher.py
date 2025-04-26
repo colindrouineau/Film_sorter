@@ -2,6 +2,7 @@ from CONFIG import *
 import os
 import db
 import utils as u
+import record_utils as rc
 
 
 def record(path_to_disk):
@@ -13,9 +14,11 @@ def record(path_to_disk):
     disk_number = u.punctuation_split(path_to_disk)[-1]
 
     if disk_number not in Disk_Numbers:
+        rc.create_folder("f\\Other")
         Disk_Numbers_unique = list(set(Disk_Numbers))
         print('here are the different disk_numbers :', Disk_Numbers_unique)
         print("do you want to rename it ?")
+        # It is uselessly difficult to rename it. It will have a superficial name in the txt file.
         disk_number = input()
         # Then have to check with .exe method.
 
@@ -24,7 +27,7 @@ def record(path_to_disk):
     # Date du record
     # Name of the matching registered disk
 
-    
+
 
     
 

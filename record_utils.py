@@ -110,12 +110,15 @@ def is_vost(languages, subtitles):
     return len(list(set(languages))) >= 2 and len(subtitles) >= 1
 
 
+def is_film(file_path):
+    return u.get_extension(file_path).lower() in POSSIBLE_EXTENSIONS
+
+
 # Exception if it's not a film.
 # Register the film row in the database
+# Returns the old and new name
 def register(film_path, disk_number):
-    assert (
-        u.get_extension(film_path).lower() not in POSSIBLE_EXTENSIONS
-    ), "you tried to register a file that is not a film."
+    assert is_film(film_path), "you tried to register a file that is not a film."
 
     duration, languages, subtitles = extract_video_metadata(film_path)
 
@@ -138,6 +141,8 @@ def register(film_path, disk_number):
     ]
     db.add_row(DB_NAME, TABLE_NAME, COLUMNS_TITLES, row)
 
+    return old_film_title, new_film_title
+
 
 # In case films are mixed with other files in the folder
 # Or in case the folder only contains non films objects.
@@ -146,9 +151,20 @@ def register(film_path, disk_number):
 # Puts in Other if not film .
 # Puts at the root and rename the file name
 # and registers its information in the db if it's a film.
-def simple_treater(file_path):
-    class bo:
-        pass
+def simple_treater(file_path, disk_number):
+    if is_film(file_path):
+        _, new_film_title = register(file_path, disk_number)
+        move_and_rename_file(file_path, "f" + "\\" + new_film_title)
+    else:
+        path_seps = ["/", "\\"]
+        film_path_list = file_path
+        for path_sep in path_seps:
+            film_path_list = film_path_list.split(path_seps)
+        old_film_title = film_path_list[-1]
+        move_and_rename_file(file_path, "d\\Other\\" + old_film_title)
+
+        
+
 
 
 if __name__ == "__main__":
