@@ -6,3 +6,4 @@ dependencies:
   - python-Levenshtein
   - pyinstaller
   - sqlalchemy
+  - pathlib

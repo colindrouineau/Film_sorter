@@ -19,6 +19,7 @@ from CONFIG import *
 def punctuation_split(text):
     splitting = []
     word = ""
+    text = str(text)
     for c in text:
         if c in PUNCTUATION:
             if word != "":
@@ -32,4 +33,4 @@ def punctuation_split(text):
 
 
 def get_extension(file_name):
-    return file_name.split(".")[-1]
+    return str(file_name).split(".")[-1]

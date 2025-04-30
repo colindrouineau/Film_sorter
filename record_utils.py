@@ -4,6 +4,7 @@ import os
 import shutil
 import utils as u
 import db
+from pathlib import Path
 
 
 def convert_milliseconds(milliseconds):
@@ -20,6 +21,7 @@ def convert_milliseconds(milliseconds):
 
 # return duration as (hours, minutes, seconds), languages and subtitles as a list of the available ones.
 def extract_video_metadata(file_path, test=False):
+    print(file_path)
     media_info = MediaInfo.parse(file_path)
     duration = None
     languages = []
@@ -64,6 +66,7 @@ def text_formatter(text, test=False):
 def move_and_rename_file(source_path, destination_path, test=False):
     try:
         # Move and rename the file
+
         shutil.move(source_path, destination_path)
         if test:
             print(
@@ -122,11 +125,9 @@ def register(film_path, disk_number):
 
     duration, languages, subtitles = extract_video_metadata(film_path)
 
-    path_seps = ["/", "\\"]
-    film_path_list = film_path
-    for path_sep in path_seps:
-        film_path_list = film_path_list.split(path_seps)
-    old_film_title = film_path_list[-1]
+    film_path = Path(film_path)
+
+    old_film_title = film_path.name
     new_film_title = text_formatter()
     vost = is_vost(languages, subtitles)
 
@@ -160,14 +161,10 @@ def register(film_path, disk_number):
 def simple_treater(file_path, disk_number):
     if is_film(file_path):
         _, new_film_title = register(file_path, disk_number)
-        move_and_rename_file(file_path, DISK_LOCATION + "\\" + new_film_title)
+        move_and_rename_file(file_path, Path(DISK_LOCATION) / new_film_title)
     else:
-        file_title = file_path.split('\\')[-1]  #Works also on folders
-        move_and_rename_file(file_path, DISK_LOCATION + "\\Other\\" + file_title)
-
-        
-
-
+        file_title = Path(file_path).name  #Works also on folders
+        move_and_rename_file(file_path, Path(DISK_LOCATION) / "Other" / file_title)
 
 
 if __name__ == "__main__":

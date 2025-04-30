@@ -1,4 +1,5 @@
 from sqlalchemy import Integer, String, Boolean
+from pathlib import Path
 
 DB_NAME = "Film_sorter"
 # Languages = "French, English, Russian" for ex
@@ -6,7 +7,7 @@ DB_NAME = "Film_sorter"
 COLUMNS = [["Film_title", String], ["Disk_number", Integer], ["Film_duration", String], ["VO", Boolean], ["Languages", String], ["Subtitles", String], ["Original_film_title", String]]
 COLUMNS_TITLES = [element[0] for element in COLUMNS]
 TABLE_NAME = "Films"
-DISK_LOCATION = 'f'  # It may change according to hardwares or computers.
+DISK_LOCATION = Path("C:") / "Film_sorter_test - Copie"  # It may change according to hardwares or computers.
 
 
 
