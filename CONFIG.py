@@ -6,6 +6,8 @@ DB_NAME = "Film_sorter"
 COLUMNS = [["Film_title", String], ["Disk_number", Integer], ["Film_duration", String], ["VO", Boolean], ["Languages", String], ["Subtitles", String], ["Original_film_title", String]]
 COLUMNS_TITLES = [element[0] for element in COLUMNS]
 TABLE_NAME = "Films"
+DISK_LOCATION = 'f'  # It may change according to hardwares or computers.
+
 
 
 PUNCTUATION = [

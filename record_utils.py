@@ -91,7 +91,7 @@ def create_folder(folder_path, test=False):
         print(f"An error occurred while creating the folder: {e}")
 
 
-def delete_empty_folder(folder_path, test=False):
+def remove_empty_folder(folder_path, test=False):
     try:
         if os.path.isdir(folder_path):
             os.rmdir(folder_path)
@@ -111,7 +111,7 @@ def is_vost(languages, subtitles):
 
 
 def is_film(file_path):
-    return u.get_extension(file_path).lower() in POSSIBLE_EXTENSIONS
+    return u.get_extension(file_path).lower() in POSSIBLE_EXTENSIONS and os.path.isfile(file_path)
 
 
 # Exception if it's not a film.
@@ -144,26 +144,29 @@ def register(film_path, disk_number):
     return old_film_title, new_film_title
 
 
-# In case films are mixed with other files in the folder
-# Or in case the folder only contains non films objects.
-# The hereby function does not test anything.
+# This function treats files when there's no group effect.
+# It means that
 # It :
-# Puts in Other if not film .
-# Puts at the root and rename the file name
+# Puts in Other if file and not film .
+# Puts at the root and rename the file name if it's a film
 # and registers its information in the db if it's a film.
+# If it is a folder, it also moves it in Other
+
+# It only works ON FILES AND in the following cases :
+# - the file is a film
+# - the folder contains some films.
+# No test of valid using for the
+
 def simple_treater(file_path, disk_number):
     if is_film(file_path):
         _, new_film_title = register(file_path, disk_number)
-        move_and_rename_file(file_path, "f" + "\\" + new_film_title)
+        move_and_rename_file(file_path, DISK_LOCATION + "\\" + new_film_title)
     else:
-        path_seps = ["/", "\\"]
-        film_path_list = file_path
-        for path_sep in path_seps:
-            film_path_list = film_path_list.split(path_seps)
-        old_film_title = film_path_list[-1]
-        move_and_rename_file(file_path, "d\\Other\\" + old_film_title)
+        file_title = file_path.split('\\')[-1]  #Works also on folders
+        move_and_rename_file(file_path, DISK_LOCATION + "\\Other\\" + file_title)
 
         
+
 
 
 

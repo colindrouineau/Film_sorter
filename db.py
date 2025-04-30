@@ -131,7 +131,7 @@ def get_column_as_l(table, column_name):
 
 
 def get_column_as_list(db_name, table_name, columns, column_name):
-    engine, _, User = define_classe(db_name, columns, table_name)
+    engine, _, _ = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
     # Reflect the existing database schema
