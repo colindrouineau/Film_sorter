@@ -5,6 +5,7 @@ import shutil
 import utils as u
 import db
 from pathlib import Path
+from utils import coloured_print as cprint
 
 
 def convert_milliseconds(milliseconds):
@@ -21,7 +22,6 @@ def convert_milliseconds(milliseconds):
 
 # return duration as (hours, minutes, seconds), languages and subtitles as a list of the available ones.
 def extract_video_metadata(file_path, test=False):
-    print(file_path)
     media_info = MediaInfo.parse(file_path)
     duration = None
     languages = []
@@ -39,9 +39,15 @@ def extract_video_metadata(file_path, test=False):
                 + " s "
             )
         elif track.track_type == "Audio":
-            languages.append(track.other_language[0])
+            if track.other_languages == None:
+                languages.append("Piste " + str(len(languages) + 1))
+            else :
+                languages.append(track.other_language[0])
         elif track.track_type == "Text":
-            subtitles.append(track.other_language[0])
+            if track.other_languages == None:
+                subtitles.append("Piste " + str(len(subtitles) + 1))
+            else:
+                subtitles.append(track.other_language[0])
 
     if test:
         print(f"Duration: {duration}")
@@ -128,7 +134,7 @@ def register(film_path, disk_number):
     film_path = Path(film_path)
 
     old_film_title = film_path.name
-    new_film_title = text_formatter()
+    new_film_title = text_formatter(old_film_title)
     vost = is_vost(languages, subtitles)
 
     row = [
@@ -140,7 +146,8 @@ def register(film_path, disk_number):
         ", ".join(subtitles),
         old_film_title,
     ]
-    db.add_row(DB_NAME, TABLE_NAME, COLUMNS_TITLES, row)
+    row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
+    db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
     return old_film_title, new_film_title
 

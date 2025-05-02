@@ -3,22 +3,21 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from research_utils import significant_str_distance
 from record_utils import text_formatter
+from utils import coloured_print as cprint
 from CONFIG import *
 
 
-# row = list of [name str, value type]
-def define_classe(db_name, row, table_name):
+# columns = list of [name str, value type]
+def define_classe(db_name, columns, table_name):
     # Create the engine (connects to the database)
     engine = create_engine("sqlite:///" + db_name + ".db")
     Base = declarative_base()
-
     # Dynamically create column attributes
     # Film_title (First item of columns) must be the primary key
     column_definitions = {
-        row[i][0]: Column(row[i][1], primary_key=(i == 0)) for i in range(len(row))
+        columns[i][0]: Column(columns[i][1], primary_key=(i == 0)) for i in range(len(columns))
     }
     column_definitions["__tablename__"] = table_name
-
     # Define the table as a Python class
     User = type("User", (Base,), column_definitions)
 
@@ -48,7 +47,6 @@ def is_in_table(db_name, table_name, column_names, row_id):
 # columns = columns title, questions. Only corresponding questions should be selected
 # row = answers
 def add_row(db_name, table_name, columns, row):
-
     assert len(columns) == len(row), "One question should match one answer."
 
     # Creates the class from the arguments.
@@ -105,29 +103,6 @@ def query(
     session.close()
 
     return request_result
-
-
-def get_column_as_l(table, column_name):
-    """
-    Returns the values of a column as a list.
-
-    :param table: The SQLAlchemy Table object
-    :param column_name: The name of the column to extract
-    :return: A list of the column values
-    """
-    # Check if the column exists in the table
-    if column_name not in table.c:
-        raise ValueError(
-            f"Column '{column_name}' does not exist in table '{table.name}'"
-        )
-
-    # Execute a query to get the values of the column
-    result = session.query(table.c[column_name]).all()
-
-    # Convert the result to a list
-    column_values = [row[0] for row in result]
-
-    return column_values
 
 
 def get_column_as_list(db_name, table_name, columns, column_name):

@@ -1,4 +1,5 @@
 import chardet
+from colorama import Fore, Style
 from CONFIG import *
 
 ## No longer useful because the stop word list is directly written as a str.
@@ -15,6 +16,7 @@ from CONFIG import *
 #
 #     content = content.split("\n")
 #     return content
+
 
 def punctuation_split(text):
     splitting = []
@@ -34,3 +36,18 @@ def punctuation_split(text):
 
 def get_extension(file_name):
     return str(file_name).split(".")[-1]
+
+
+def coloured_print(text, colour="Blue"):
+    object_type = type(text)
+    text = str(text)
+    colour = colour.upper()
+    assert colour in ["BLUE", "CYAN", "RED"], (
+        "colour must be either blue, cyan or red, not" + colour
+    )
+    if colour == "BLUE":
+        print(Fore.BLUE + text + "   " + str(object_type) + Style.RESET_ALL)
+    if colour == "CYAN":
+        print(Fore.CYAN + text + Style.RESET_ALL)
+    if colour == "RED":
+        print(Fore.RED + text + Style.RESET_ALL)
