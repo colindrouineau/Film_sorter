@@ -34,14 +34,14 @@ def create_new_table(db_name, columns, table_name):
 
 
 # Fonction pour vérifier si un élément existe (le titre doit être identique pour que l'élément soit reconnu)
-def is_in_table(db_name, table_name, column_names, row_id):
-    engine, _, User = define_classe(db_name, column_names, table_name)
+def is_in_table(db_name, table_name, columns, row_id):
+    engine, _, User = define_classe(db_name, columns, table_name)
     # Créer une session
     Session = sessionmaker(bind=engine)
     session = Session()
     row_id = text_formatter(row_id)
 
-    return session.query(User).filter(User.film_name == row_id).first() is not None
+    return session.query(User).filter(User.Film_title == row_id).first() is not None
 
 
 # columns = columns title, questions. Only corresponding questions should be selected
@@ -73,11 +73,11 @@ def add_row(db_name, table_name, columns, row):
 # VO is a bool
 # return the lines of the films that correspond most
 # Il me semble que ça renvoie les lignes sous la forme d'une liste.
-def query(
+def user_query(
     db_name,
     table_name,
     columns,
-    film_title,
+    film_title=None,
     film_duration=None,
     VO=None,
 ):
@@ -131,3 +131,25 @@ def get_column_as_list(db_name, table_name, columns, column_name):
     column_values = [row[0] for row in result]
 
     return column_values
+
+
+def disk_number_query(db_name, table_name, columns, disk_number):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    
+   
+    result = session.query(User.Film_title).filter(User.Disk_number == disk_number).all()
+
+    return [result[i][0] for i in range(len(result))]
+
+
+def delete_row(db_name, table_name, columns, film_title):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    # Query the row you want to delete (e.g., by primary key)
+    film_to_delete = session.query(User).where(User.Film_title == film_title).first()
+    if film_to_delete:
+        session.delete(film_to_delete)
+        session.commit()

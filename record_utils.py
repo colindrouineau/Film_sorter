@@ -29,19 +29,22 @@ def extract_video_metadata(file_path, test=False):
 
     for track in media_info.tracks:
         if track.track_type == "General":
-            duration = convert_milliseconds(track.duration)
-            duration = (
-                str(duration[0])
-                + " h "
-                + str(duration[1])
-                + " m "
-                + str(duration[2])
-                + " s "
-            )
+            if track.duration == None:
+                duration = "Unknown"
+            else:
+                duration = convert_milliseconds(int(float(track.duration)))
+                duration = (
+                    str(duration[0])
+                    + " h "
+                    + str(duration[1])
+                    + " m "
+                    + str(duration[2])
+                    + " s "
+                )
         elif track.track_type == "Audio":
             if track.other_languages == None:
                 languages.append("Piste " + str(len(languages) + 1))
-            else :
+            else:
                 languages.append(track.other_language[0])
         elif track.track_type == "Text":
             if track.other_languages == None:
@@ -90,11 +93,11 @@ def create_folder(folder_path, test=False):
     try:  # if os.path.isfile(file_path):
         # Create the directory
         if os.path.isdir(folder_path):
+            print(f"Folder {folder_path} already existed")
+        else:
             os.makedirs(folder_path, exist_ok=True)
             if test:
                 print(f"Folder created successfully at {folder_path}")
-        else:
-            print(f"Folder {folder_path} already existed")
 
     except Exception as e:
         print(f"An error occurred while creating the folder: {e}")
@@ -119,13 +122,29 @@ def is_vost(languages, subtitles):
     return len(list(set(languages))) >= 2 and len(subtitles) >= 1
 
 
-def is_film(file_path):
-    return u.get_extension(file_path).lower() in POSSIBLE_EXTENSIONS and os.path.isfile(file_path)
+def is_video(file_path):
+    return u.get_extension(file_path).lower() in POSSIBLE_EXTENSIONS and os.path.isfile(
+        file_path
+    )
 
+def is_film(file_path):
+    video = is_video(file_path)
+    if not video:
+        return False
+    else:
+        media_info = MediaInfo.parse(file_path)
+        for track in media_info.tracks:
+            if track.track_type == "General":
+                if track.duration == None:
+                    duration = (0,0,0)
+                else:
+                    duration = convert_milliseconds(int(float(track.duration)))
+    return duration > (0, 30, 0)
 
 # Exception if it's not a film.
 # Register the film row in the database
 # Returns the old and new name
+# Doesn't register films that already are there
 def register(film_path, disk_number):
     assert is_film(film_path), "you tried to register a file that is not a film."
 
@@ -147,7 +166,9 @@ def register(film_path, disk_number):
         old_film_title,
     ]
     row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
-    db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
+
+    if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
+        db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
     return old_film_title, new_film_title
 
@@ -165,12 +186,15 @@ def register(film_path, disk_number):
 # - the folder contains some films.
 # No test of valid using for the
 
+
 def simple_treater(file_path, disk_number):
     if is_film(file_path):
         _, new_film_title = register(file_path, disk_number)
         move_and_rename_file(file_path, Path(DISK_LOCATION) / new_film_title)
-    else:
-        file_title = Path(file_path).name  #Works also on folders
+    elif file_path.name != "Other":
+        file_title = Path(file_path).name  # Works also on folders
+        print(file_path)
+        print(Path(DISK_LOCATION) / "Other" / file_title)
         move_and_rename_file(file_path, Path(DISK_LOCATION) / "Other" / file_title)
 
 

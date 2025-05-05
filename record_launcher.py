@@ -15,7 +15,7 @@ def initialise(path_to_disk):
     disk_number = u.punctuation_split(path_to_disk)[-1]
 
     if disk_number not in Disk_Numbers:
-        rc.create_folder(Path(path_to_disk) /  "Other")
+        rc.create_folder(Path(path_to_disk) / "Other", test=True)
         Disk_Numbers_unique = list(set(Disk_Numbers))
         print("here are the different disk_numbers :", Disk_Numbers_unique)
         print("do you want to rename it ?")
@@ -36,7 +36,13 @@ def initialise(path_to_disk):
     # et un deuxième passage où on balance tout ce qu'est pas film dans Other
 
 
-def record(path_to_disk):
+def record(path_to_disk, disk_number):
+    recorded_films = []
+    
+    Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
+    if disk_number in Disk_Numbers:
+        disk_films = db.disk_number_query(DB_NAME, TABLE_NAME, COLUMNS, disk_number)
+
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
 
@@ -45,21 +51,28 @@ def record(path_to_disk):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
+            recorded_films.append(treated_path.name)
             rc.simple_treater(treated_path, disk_number)
         elif os.path.isdir(treated_path):
             entries = os.listdir(treated_path)
             pile += [treated_path / entry for entry in entries]
 
     # Second
-    pile = [path_to_disk / entry for entry in entries] 
+    entries = os.listdir(path_to_disk)
+
+    pile = [path_to_disk / entry for entry in entries]
     while len(pile) > 0:
         treated_path = pile.pop()
         if not rc.is_film(treated_path):
             rc.simple_treater(treated_path, disk_number)
+    
+    for film_title in disk_films:
+        if film_title not in recorded_films:
+            db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)
 
 
 if __name__ == "__main__":
     path_to_disk = DISK_LOCATION
 
     disk_number = initialise(path_to_disk)
-    record(path_to_disk)
+    record(path_to_disk, disk_number)
