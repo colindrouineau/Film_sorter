@@ -38,10 +38,6 @@ def initialise(path_to_disk):
 
 def record(path_to_disk, disk_number):
     recorded_films = []
-    
-    Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
-    if disk_number in Disk_Numbers:
-        disk_films = db.disk_number_query(DB_NAME, TABLE_NAME, COLUMNS, disk_number)
 
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
@@ -51,7 +47,7 @@ def record(path_to_disk, disk_number):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
-            recorded_films.append(treated_path.name)
+            recorded_films.append(rc.text_formatter(treated_path.name))
             rc.simple_treater(treated_path, disk_number)
         elif os.path.isdir(treated_path):
             entries = os.listdir(treated_path)
@@ -65,7 +61,9 @@ def record(path_to_disk, disk_number):
         treated_path = pile.pop()
         if not rc.is_film(treated_path):
             rc.simple_treater(treated_path, disk_number)
-    
+
+    # Delete if it was deleted on the considered disk.
+    disk_films = db.disk_number_query(DB_NAME, TABLE_NAME, COLUMNS, disk_number)
     for film_title in disk_films:
         if film_title not in recorded_films:
             db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)

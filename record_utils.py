@@ -42,12 +42,12 @@ def extract_video_metadata(file_path, test=False):
                     + " s "
                 )
         elif track.track_type == "Audio":
-            if track.other_languages == None:
+            if track.other_language == None:
                 languages.append("Piste " + str(len(languages) + 1))
             else:
                 languages.append(track.other_language[0])
         elif track.track_type == "Text":
-            if track.other_languages == None:
+            if track.other_language == None:
                 subtitles.append("Piste " + str(len(subtitles) + 1))
             else:
                 subtitles.append(track.other_language[0])
@@ -193,8 +193,6 @@ def simple_treater(file_path, disk_number):
         move_and_rename_file(file_path, Path(DISK_LOCATION) / new_film_title)
     elif file_path.name != "Other":
         file_title = Path(file_path).name  # Works also on folders
-        print(file_path)
-        print(Path(DISK_LOCATION) / "Other" / file_title)
         move_and_rename_file(file_path, Path(DISK_LOCATION) / "Other" / file_title)
 
 
