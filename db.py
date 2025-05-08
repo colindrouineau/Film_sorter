@@ -39,7 +39,6 @@ def is_in_table(db_name, table_name, columns, row_id):
     # Créer une session
     Session = sessionmaker(bind=engine)
     session = Session()
-    row_id = text_formatter(row_id)
 
     return session.query(User).filter(User.Film_title == row_id).first() is not None
 
@@ -55,7 +54,7 @@ def add_row(db_name, table_name, columns, row):
     # Créer une session
     Session = sessionmaker(bind=engine)
     session = Session()
-
+    
     attribute_values = {columns[i][0]: row[i][0] for i in range(len(row))}
     # Instancier dynamiquement la classe User avec les valeurs d'attributs
     new_user = User(**attribute_values)
@@ -127,6 +126,7 @@ def get_column_as_list(db_name, table_name, columns, column_name):
 
     # Execute a query to get the values of the column
     result = session.query(table.c[column_name]).all()
+    session.close()
     # Convert the result to a list
     column_values = [row[0] for row in result]
 
@@ -140,6 +140,7 @@ def disk_number_query(db_name, table_name, columns, disk_number):
     
    
     result = session.query(User.Film_title).filter(User.Disk_number == disk_number).all()
+    session.close()
 
     return [result[i][0] for i in range(len(result))]
 
@@ -153,3 +154,15 @@ def delete_row(db_name, table_name, columns, film_title):
     if film_to_delete:
         session.delete(film_to_delete)
         session.commit()
+        session.close()
+
+
+# Renvoie une instance de la calsse User.
+def get_row(db_name, table_name, columns, film_title):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    # Query the row you want to delete (e.g., by primary key)
+    film_row = session.query(User).where(User.Film_title == film_title).first()
+    session.close()
+    return film_row

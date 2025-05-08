@@ -6,6 +6,9 @@ from CONFIG import *
 def significant_beginning(text, test=False):
     text = punctuation_split(text.lower())
     text.pop()  # On enlève l'extension
+    # On enlève le "Disk disk_number"
+    if text[0] == "Disk":
+        text = text[2:]
     n_sig_words = 0
     i = 0
     last_recorded = 0

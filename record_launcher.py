@@ -47,7 +47,10 @@ def record(path_to_disk, disk_number):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
-            recorded_films.append(rc.text_formatter(treated_path.name))
+            film_name = rc.text_formatter(treated_path.name)
+            other_disk_film_name = "Disk " + disk_number + " : " + film_name
+            recorded_films.append(film_name)
+            recorded_films.append(other_disk_film_name)
             rc.simple_treater(treated_path, disk_number)
         elif os.path.isdir(treated_path):
             entries = os.listdir(treated_path)
@@ -63,9 +66,20 @@ def record(path_to_disk, disk_number):
             rc.simple_treater(treated_path, disk_number)
 
     # Delete if it was deleted on the considered disk.
+    # Delete if 2 names of the same film for one disk
     disk_films = db.disk_number_query(DB_NAME, TABLE_NAME, COLUMNS, disk_number)
     for film_title in disk_films:
+        disked = "Disk " + disk_number + " : " + film_title
+        undisked = (
+            film_title[8 + len(disk_number) :]
+            if len(film_title) > 8 + len(disk_number)
+            else None
+        )
         if film_title not in recorded_films:
+            db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)
+        elif disked in disk_films and film_title in disk_films:
+            db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, disked)
+        elif undisked in disk_films and film_title in disk_films:
             db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)
 
 

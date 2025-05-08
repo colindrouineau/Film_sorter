@@ -127,6 +127,7 @@ def is_video(file_path):
         file_path
     )
 
+
 def is_film(file_path):
     video = is_video(file_path)
     if not video:
@@ -136,10 +137,11 @@ def is_film(file_path):
         for track in media_info.tracks:
             if track.track_type == "General":
                 if track.duration == None:
-                    duration = (0,0,0)
+                    duration = (0, 0, 0)
                 else:
                     duration = convert_milliseconds(int(float(track.duration)))
     return duration > (0, 30, 0)
+
 
 # Exception if it's not a film.
 # Register the film row in the database
@@ -166,9 +168,17 @@ def register(film_path, disk_number):
         old_film_title,
     ]
     row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
-
     if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
         db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
+    else:
+        other_film = db.get_row(DB_NAME, TABLE_NAME, COLUMNS, new_film_title)
+        other_film_disk = other_film.Disk_number
+        double_name = "Disk " + disk_number + " : " + new_film_title
+        if other_film_disk != disk_number and not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, double_name):
+            cprint(db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, double_name))
+            row[0][0] = double_name
+            cprint(row)
+            db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
     return old_film_title, new_film_title
 
