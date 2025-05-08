@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from research_utils import significant_str_distance
 from record_utils import text_formatter
-from utils import coloured_print as cprint
+from utils import coloured_print as cprint, hms_to_tuple
 from CONFIG import *
 
 
@@ -15,7 +15,8 @@ def define_classe(db_name, columns, table_name):
     # Dynamically create column attributes
     # Film_title (First item of columns) must be the primary key
     column_definitions = {
-        columns[i][0]: Column(columns[i][1], primary_key=(i == 0)) for i in range(len(columns))
+        columns[i][0]: Column(columns[i][1], primary_key=(i == 0))
+        for i in range(len(columns))
     }
     column_definitions["__tablename__"] = table_name
     # Define the table as a Python class
@@ -54,7 +55,7 @@ def add_row(db_name, table_name, columns, row):
     # Créer une session
     Session = sessionmaker(bind=engine)
     session = Session()
-    
+
     attribute_values = {columns[i][0]: row[i][0] for i in range(len(row))}
     # Instancier dynamiquement la classe User avec les valeurs d'attributs
     new_user = User(**attribute_values)
@@ -68,36 +69,44 @@ def add_row(db_name, table_name, columns, row):
 
 # A TESTER POSSIBLE ECHEC
 # film_title is a string
-# film_duration is a couple (min, max), with min and max = (hours, minutes, seconds)
+# film_duration is a couple (min, max), with min and max = "hh h mm m ss s"  (flexible format)
 # VO is a bool
 # return the lines of the films that correspond most
 # Il me semble que ça renvoie les lignes sous la forme d'une liste.
-def user_query(
-    db_name,
-    table_name,
-    columns,
-    film_title=None,
-    film_duration=None,
-    VO=None,
-):
+def user_query(db_name, table_name, columns, film_title=None, film_duration=None):
+    if film_duration == None:
+        film_duration = "0h, 10h"
+
     engine, _, User = define_classe(db_name, columns, table_name)
 
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    request_result = (
-        session.query(User)
-        .filter(
-            and_(
-                significant_str_distance(film_title, User.film_title) > MIN_STR_DIST,
-                User.film_duration > film_duration[0],
-                User.film_duration > film_duration[1],
-                VO=VO,
+    if film_title == None:
+        request_result = (
+            session.query(User)
+            .filter(
+                and_(
+                    hms_to_tuple(User.Film_duration) > hms_to_tuple(film_duration[0]),
+                    hms_to_tuple(User.Film_duration) < hms_to_tuple(film_duration[1]),
+                )
             )
+            .all()
         )
-        .order_by(desc(significant_str_distance(film_title, User.film_title)))
-        .all()
-    )
+    else:
+        request_result = (
+            session.query(User)
+            .filter(
+                and_(
+                    significant_str_distance(film_title, User.Film_title)
+                    > MIN_STR_DIST,
+                    hms_to_tuple(User.Film_duration) > hms_to_tuple(film_duration[0]),
+                    hms_to_tuple(User.Film_duration) < hms_to_tuple(film_duration[1]),
+                )
+            )
+            .order_by(desc(significant_str_distance(film_title, User.film_title)))
+            .all()
+        )
 
     session.close()
 
@@ -137,9 +146,10 @@ def disk_number_query(db_name, table_name, columns, disk_number):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
-    
-   
-    result = session.query(User.Film_title).filter(User.Disk_number == disk_number).all()
+
+    result = (
+        session.query(User.Film_title).filter(User.Disk_number == disk_number).all()
+    )
     session.close()
 
     return [result[i][0] for i in range(len(result))]
