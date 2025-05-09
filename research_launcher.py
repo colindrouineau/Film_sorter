@@ -6,11 +6,11 @@ from CONFIG import *
 
 if __name__ == "__main__":
     print("what is the title")
-    title = "West sidde stroy"  # input()
+    title = "hte brutalist"  # input()
     print("minimum duration ? (1h30m)")
-    minimum_duration = u.hms_to_tuple("1")  # u.hms_to_tuple(input())
-    print("max ?")
-    maximum_duration = u.hms_to_tuple("3")  # u.hms_to_tuple(input())
+    minimum_duration = "1"  # u.hms_to_tuple(input())
+    # print("max ?")
+    maximum_duration = "30"  # u.hms_to_tuple(input())
 
     research_results = db.user_query(
         DB_NAME,
@@ -20,4 +20,4 @@ if __name__ == "__main__":
         film_duration=(minimum_duration, maximum_duration),
     )
 
-    print(research_results)
+    print([research_result.Film_title for research_result in research_results])

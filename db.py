@@ -1,4 +1,14 @@
-from sqlalchemy import create_engine, Column, Integer, String, and_, or_, desc, MetaData
+from sqlalchemy import (
+    create_engine,
+    Column,
+    Integer,
+    String,
+    and_,
+    or_,
+    desc,
+    MetaData,
+    func,
+)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from research_utils import significant_str_distance
@@ -81,32 +91,22 @@ def user_query(db_name, table_name, columns, film_title=None, film_duration=None
 
     Session = sessionmaker(bind=engine)
     session = Session()
+    # Filter the results in Python :
+    request_result = session.query(User).all()
+    request_result = [
+        user
+        for user in request_result
+        if hms_to_tuple(user.Film_duration) > hms_to_tuple(film_duration[0])
+        and hms_to_tuple(user.Film_duration) < hms_to_tuple(film_duration[1])
+    ]
 
-    if film_title == None:
-        request_result = (
-            session.query(User)
-            .filter(
-                and_(
-                    hms_to_tuple(User.Film_duration) > hms_to_tuple(film_duration[0]),
-                    hms_to_tuple(User.Film_duration) < hms_to_tuple(film_duration[1]),
-                )
-            )
-            .all()
+    if film_title != None:
+        request_result = sorted(
+            request_result,
+            key=lambda user: significant_str_distance(user.Film_title, film_title),
+            reverse=True,
         )
-    else:
-        request_result = (
-            session.query(User)
-            .filter(
-                and_(
-                    significant_str_distance(film_title, User.Film_title)
-                    > MIN_STR_DIST,
-                    hms_to_tuple(User.Film_duration) > hms_to_tuple(film_duration[0]),
-                    hms_to_tuple(User.Film_duration) < hms_to_tuple(film_duration[1]),
-                )
-            )
-            .order_by(desc(significant_str_distance(film_title, User.film_title)))
-            .all()
-        )
+        request_result = request_result[: min(len(request_result) - 1, 3)]
 
     session.close()
 

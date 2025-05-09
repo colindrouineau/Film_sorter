@@ -6,6 +6,7 @@ import utils as u
 import db
 from pathlib import Path
 from utils import coloured_print as cprint
+from research_utils import significant_beginning
 
 
 def convert_milliseconds(milliseconds):
@@ -165,7 +166,7 @@ def register(film_path, disk_number):
         vost,
         ", ".join(languages),
         ", ".join(subtitles),
-        old_film_title,
+        old_film_title
     ]
     row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
     if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
@@ -175,9 +176,7 @@ def register(film_path, disk_number):
         other_film_disk = other_film.Disk_number
         double_name = "Disk " + disk_number + " : " + new_film_title
         if other_film_disk != disk_number and not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, double_name):
-            cprint(db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, double_name))
             row[0][0] = double_name
-            cprint(row)
             db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
     return old_film_title, new_film_title

@@ -55,7 +55,6 @@ def coloured_print(text, colour="Blue"):
 
 def hms_to_tuple(hms):
     # taking off punctuation
-    coloured_print(hms)
     future_hms = ""
     for e in hms:
         if e not in PUNCTUATION:
