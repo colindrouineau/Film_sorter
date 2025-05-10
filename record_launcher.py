@@ -15,13 +15,12 @@ def initialise(path_to_disk):
     disk_number = u.punctuation_split(path_to_disk)[-1]
 
     if disk_number not in Disk_Numbers:
-        rc.create_folder(Path(path_to_disk) / "Other", test=True)
+        rc.create_folder(Path(path_to_disk) / "Other")
         Disk_Numbers_unique = list(set(Disk_Numbers))
         print("here are the different disk_numbers :", Disk_Numbers_unique)
         print("do you want to rename it ?")
         # It is uselessly difficult to rename it. It will have a superficial name in the txt file.
         """disk_number = input()"""
-        # Then have to check with .exe method.
     return disk_number
 
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :

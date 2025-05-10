@@ -1,4 +1,4 @@
-name: dev-MBF
+name: dev-Film_sorter
 dependencies:
   - python==3.11.4
   - pymediainfo

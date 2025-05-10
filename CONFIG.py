@@ -16,7 +16,7 @@ COLUMNS = [
 COLUMNS_TITLES = [element[0] for element in COLUMNS]
 TABLE_NAME = "Films"
 DISK_LOCATION = (
-    Path("C:") / "Film_sorter_test"
+    Path("C:") / "Film_sorter_test - Copie - Copi"
 )  # It may change according to hardwares or computers.
 
 
