@@ -1,12 +1,13 @@
-from sqlalchemy import Integer, String, Boolean, Tuple
+from sqlalchemy import String, Boolean, Tuple
 from pathlib import Path
 
 DB_NAME = "Film_sorter"
 # Languages = "French, English, Russian" for ex
 # Film_duration = 2 h 50 m 41 s
 COLUMNS = [
+    #["File_id", String],
     ["Film_title", String],
-    ["Disk_number", Integer],
+    ["Disk_number", String],
     ["Film_duration", String],
     ["VO", Boolean],
     ["Languages", String],

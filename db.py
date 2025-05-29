@@ -1,7 +1,6 @@
 from sqlalchemy import (
     create_engine,
     Column,
-    Integer,
     String,
     and_,
     or_,

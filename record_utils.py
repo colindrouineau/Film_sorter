@@ -240,38 +240,37 @@ import os
 
 
 def update_to_github(file_path, repo_file_path, repo_name, github_username, github_token):
-    
+
     # GitHub API endpoint to get the existing file details
     file_url = f'https://api.github.com/repos/{github_username}/{repo_name}/contents/{repo_file_path}'
-    
+    print(file_url)
     # Headers for the request
     headers = {
         'Authorization': f'token {github_token}',
         'Accept': 'application/vnd.github.v3+json'
     }
-    
+
     # First, get the existing file details to obtain the SHA
     response = requests.get(file_url, headers=headers)
-    
+
     if response.status_code == 200:
         file_details = response.json()
         file_sha = file_details['sha']
-    
+
         # Read the .db file content in binary mode and encode it in base64
         with open(file_path, 'rb') as file:
             db_content = file.read()
         db_content_base64 = base64.b64encode(db_content).decode('utf-8')
-    
         # Data for the request to update the file
         data = {
             'message': 'Update .db file using Python',
             'content': db_content_base64,
             'sha': file_sha  # Include the SHA of the existing file
         }
-    
+
         # Make a PUT request to update the .db file
         update_response = requests.put(file_url, headers=headers, json=data)
-    
+
         if update_response.status_code == 200:
             print(f"File '{repo_file_path}' updated successfully.")
         else:

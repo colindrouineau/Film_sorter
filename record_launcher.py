@@ -16,8 +16,8 @@ def initialise(path_to_disk, disk_number):
     Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
 
     txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
-    if os.path.is_file(txt_path):     
-        assert disk_number in Disk_Numbers, "The disk should have been registered. Send a request to the developper."
+    if os.path.isfile(txt_path):
+        assert disk_number in Disk_Numbers, "The disk should have been registered but isn't. You must have input the wrong disk_number. \n Here are the registered disk_numbers : " + str(Disk_Numbers)
     else:
         rc.create_folder(Path(path_to_disk) / "Other")
         lines = ["Film_sorter"]
@@ -28,7 +28,7 @@ def initialise(path_to_disk, disk_number):
         rc.create_txt_file(txt_path, lines)
     
     current_dateTime = str(datetime.now())
-    lines = ["Record ", current_dateTime]
+    lines = ["Records : ", current_dateTime]
     rc.append_lines(txt_path, lines)
 
 
@@ -99,21 +99,22 @@ if __name__ == "__main__":
     start = input()
     if start == "o" :
         print('Quelle est la lettre de lecteur de votre disque dur ?')
-        path_to_disk = Path(input().upper + ":")
+        path_to_disk = Path(input().upper() + ":")
         txt_path = path_to_disk / "Other " / "Film_sorter.txt"
-        if os.path.is_file(txt_path):
+        if os.path.isfile(txt_path):
             with open(txt_path, 'r') as file:
                 contents = file.read()
                 lines = contents.splitlines()
                 disk_number = lines[3]      
             print("Le numéro d'identification de votre disque dur est : ", disk_number)
         else:
-            print("Quel numéro d'identification voulez-vous donner à votre disque ?")
+            print("Quel est le numéro d'identification de votre disque ?")
             disk_number = input()
         initialise(path_to_disk, disk_number)
         record(path_to_disk, disk_number)
 
-        file_path = Path(path_to_disk) / DB_NAME + ".db"
+        print("What is the path to Film_sorter.db ?")
+        file_path = input()
         repo_file_path = "Film_sorter.db"
         repo_name = "Film_sorter"
         github_username = "colindrouineau"
