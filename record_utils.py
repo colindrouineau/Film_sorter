@@ -225,13 +225,16 @@ def register(film_path, disk_number):
 # No test of valid using for the
 
 
-def simple_treater(file_path, disk_number):
+def simple_treater(file_path, disk_number, path_to_disk):
     if is_film(file_path):
         _, new_film_title = register(file_path, disk_number)
-        move_and_rename_file(file_path, Path(DISK_LOCATION) / new_film_title)
+        move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
     elif file_path.name != "Other":
         file_title = Path(file_path).name  # Works also on folders
-        move_and_rename_file(file_path, Path(DISK_LOCATION) / "Other" / file_title)
+        move_and_rename_file(file_path, Path(path_to_disk) / "Other" / file_title)
+
+
+
 
 
 if __name__ == "__main__":

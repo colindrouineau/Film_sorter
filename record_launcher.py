@@ -61,7 +61,7 @@ def record(path_to_disk, disk_number):
             other_disk_film_name = "Disk " + disk_number + " : " + film_name
             recorded_films.append(film_name)
             recorded_films.append(other_disk_film_name)
-            rc.simple_treater(treated_path, disk_number)
+            rc.simple_treater(treated_path, disk_number, path_to_disk)
         elif os.path.isdir(treated_path):
             entries = os.listdir(treated_path)
             pile += [treated_path / entry for entry in entries]
@@ -73,7 +73,7 @@ def record(path_to_disk, disk_number):
     while len(pile) > 0:
         treated_path = pile.pop()
         if not rc.is_film(treated_path):
-            rc.simple_treater(treated_path, disk_number)
+            rc.simple_treater(treated_path, disk_number, path_to_disk)
 
     # Delete if it was deleted on the considered disk.
     # Delete if 2 names of the same film for one disk
