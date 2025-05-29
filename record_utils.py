@@ -103,6 +103,35 @@ def create_folder(folder_path, test=False):
     except Exception as e:
         print(f"An error occurred while creating the folder: {e}")
 
+    
+def create_txt_file(txt_path, lines, test=False):
+    try:
+        if os.path.isfile(txt_path):
+            print(f"Folder {txt_path} already exists")
+        else:
+            # Open the file in write mode and automatically close it using 'with'
+            with open(txt_path, 'w') as file:
+                for line in lines:
+                    file.write(line + "\n")
+                if test:
+                    print(f"File '{txt_path}' has been created successfully.")
+
+    except Exception as e:
+        print(f"An error occurred while creating the folder: {e}")
+
+
+def append_lines(txt_path, lines, test = False):
+    try:  # if os.path.isfile(file_path):
+        # Open the file in write mode and automatically close it using 'with'
+        with open(txt_path, 'a') as file:
+            for line in lines:
+                file.write(line + "\n")
+            if test:
+                print(f"File '{file_path}' has been created successfully.")
+
+    except Exception as e:
+        print(f"An error occurred while creating the folder: {e}")
+
 
 def remove_empty_folder(folder_path, test=False):
     try:

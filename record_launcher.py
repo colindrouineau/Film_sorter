@@ -4,29 +4,40 @@ import db
 import utils as u
 import record_utils as rc
 from pathlib import Path
+from datetime import datetime
 
 
-def initialise(path_to_disk):
+# Renvoie True si le disque dur avait déjà été enregistré, False s'il est nouveau.
+def initialise(path_to_disk, disk_number):
     db.create_new_table(
         DB_NAME, COLUMNS, TABLE_NAME
     )  # Creation of the db if not already there
 
     Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
-    disk_number = u.punctuation_split(path_to_disk)[-1]
 
-    if disk_number not in Disk_Numbers:
+    txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
+    if os.path.is_file(txt_path):     
+        assert disk_number in Disk_Numbers, "The disk should have been registered. Send a request to the developper."
+    else:
         rc.create_folder(Path(path_to_disk) / "Other")
-        Disk_Numbers_unique = list(set(Disk_Numbers))
-        print("here are the different disk_numbers :", Disk_Numbers_unique)
-        print("do you want to rename it ?")
-        # It is uselessly difficult to rename it. It will have a superficial name in the txt file.
-        """disk_number = input()"""
-    return disk_number
+        lines = ["Film_sorter"]
+        lines.append("")
+        lines.append("Numéro de disque : ")
+        lines.append(disk_number)
+        lines.append("")
+        rc.create_txt_file(txt_path, lines)
+    
+    current_dateTime = str(datetime.now())
+    lines = ["Record ", current_dateTime]
+    rc.append_lines(txt_path, lines)
+
 
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
-    # Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres),
+    # Je juge que c'est pas nécessaire : Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres),
     # Date du record
     # Name of the matching registered disk
+
+
 
     # fonction qui parcourt et arrange tout, et en même temps que le parcours, remplit la base de données
     # la fonction doit aussi écrire le fichier "testé"
@@ -83,7 +94,23 @@ def record(path_to_disk, disk_number):
 
 
 if __name__ == "__main__":
-    path_to_disk = DISK_LOCATION
-
-    disk_number = initialise(path_to_disk)
-    record(path_to_disk, disk_number)
+    print("Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. Il sera réagencé et vous ne pourrez pas retourner à l'agencement initial.")
+    print("Voulez-vous continuer ? (o/n)")
+    start = input()
+    if start == "o" :
+        print('Quelle est la lettre de lecteur de votre disque dur ?')
+        path_to_disk = Path(input().upper + ":")
+        txt_path = path_to_disk / "Other " / "Film_sorter.txt"
+        if os.path.is_file(txt_path):
+            with open(txt_path, 'r') as file:
+                contents = file.read()
+                lines = contents.splitlines()
+                disk_number = lines[3]      
+            print("Le numéro d'identification de votre disque dur est : ", disk_number)
+        else:
+            print("Quel numéro d'identification voulez-vous donner à votre disque ?")
+            disk_number = input()
+        initialise(path_to_disk, disk_number)
+        record(path_to_disk, disk_number)
+    else:
+        print("Nous espérons vous revoir bientôt.")

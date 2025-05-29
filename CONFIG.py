@@ -15,9 +15,9 @@ COLUMNS = [
 ]
 COLUMNS_TITLES = [element[0] for element in COLUMNS]
 TABLE_NAME = "Films"
-DISK_LOCATION = (
-    Path("C:") / "Film_sorter_test - Copie - Copi"
-)  # It may change according to hardwares or computers.
+# DISK_LOCATION = (
+#     Path("C:") / "Film_sorter_test - Copie - Copi"
+# )  # It may change according to hardwares or computers.
 
 
 PUNCTUATION = [
@@ -65,3 +65,10 @@ POSSIBLE_EXTENSIONS = POSSIBLE_EXTENSIONS.split(", ")
 if __name__ == "__main__":
     print(STOP_WORDS_FRENCH)
     print(STOP_WORDS_ENGLISH)
+
+
+# Le fichier .txt :
+# ligne 0 : "Film_sorter"
+# ligne 2 : "Numéro de disque : "
+# ligne 3 : disk_number
+# ligne 4 + n : "record" + date

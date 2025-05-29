@@ -106,11 +106,21 @@ def user_query(db_name, table_name, columns, film_title=None, film_duration=None
             key=lambda user: significant_str_distance(user.Film_title, film_title),
             reverse=True,
         )
-        request_result = request_result[: min(len(request_result) - 1, 3)]
-
+        selected_request_result = request_result[: min(len(request_result) - 1, 3)]
+        i = 0
+        while (
+            3 + i < len(request_result)
+            and significant_str_distance(request_result[3 + i].Film_title, film_title)
+            - significant_str_distance(request_result[0].Film_title, film_title)
+            <= 0.1
+        ):
+            selected_request_result.append(request_result[3 + i])
+            i += 1
+            # Ne pas écarter des résultats qui resteraient pertinents
+            # (Je pense aux sagas par exemple)
     session.close()
 
-    return request_result
+    return selected_request_result
 
 
 def get_column_as_list(db_name, table_name, columns, column_name):

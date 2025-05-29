@@ -7,3 +7,4 @@ dependencies:
   - pyinstaller
   - sqlalchemy
   - pathlib
+  - datetime
