@@ -112,5 +112,16 @@ if __name__ == "__main__":
             disk_number = input()
         initialise(path_to_disk, disk_number)
         record(path_to_disk, disk_number)
+
+        file_path = Path(path_to_disk) / DB_NAME + ".db"
+        repo_file_path = "Film_sorter.db"
+        repo_name = "Film_sorter"
+        github_username = "colindrouineau"
+        print("What is the path to the token ?")
+        token_path = input()
+        with open(token_path, "r") as file:
+            github_token = file.read()
+
+        rc.update_to_github(file_path, repo_file_path, repo_name, github_username, github_token)
     else:
         print("Nous espérons vous revoir bientôt.")
