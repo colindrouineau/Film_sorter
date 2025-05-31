@@ -9,6 +9,7 @@ from utils import coloured_print as cprint
 from research_utils import significant_beginning
 import requests
 import base64
+import hashlib
 
 
 def convert_milliseconds(milliseconds):
@@ -185,12 +186,14 @@ def register(film_path, disk_number):
     duration, languages, subtitles = extract_video_metadata(film_path)
 
     film_path = Path(film_path)
+    film_hash = calculate_file_hash(film_path)
 
     old_film_title = film_path.name
     new_film_title = text_formatter(old_film_title)
     vost = is_vost(languages, subtitles)
 
     row = [
+        film_hash,
         new_film_title,
         disk_number,
         duration,
@@ -199,17 +202,14 @@ def register(film_path, disk_number):
         ", ".join(subtitles),
         old_film_title,
     ]
-    row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
-    if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
-        db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
-    else:
-        other_film = db.get_row(DB_NAME, TABLE_NAME, COLUMNS, new_film_title)
-        other_film_disk = other_film.Disk_number
-        double_name = "Disk " + disk_number + " : " + new_film_title
-        if other_film_disk != disk_number and not db.is_in_table(
-            DB_NAME, TABLE_NAME, COLUMNS, double_name
-        ):
-            row[0][0] = double_name
+    
+    if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_hash):
+        if db.film_title_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
+            other_film = db.get_row(DB_NAME, TABLE_NAME, COLUMNS, new_film_title)
+            other_film_disk = other_film.Disk_number
+            new_film_title = "Disk " + disk_number + " : " + new_film_title + "(2)"
+            row[1] = new_film_title
+            row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
             db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
     return old_film_title, new_film_title
@@ -244,7 +244,6 @@ def update_to_github(
 
     # GitHub API endpoint to get the existing file details
     file_url = f"https://api.github.com/repos/{github_username}/{repo_name}/contents/{repo_file_path}"
-    print(file_url)
     # Headers for the request
     headers = {
         "Authorization": f"token {github_token}",
@@ -280,6 +279,17 @@ def update_to_github(
     else:
         print(f"Failed to get file details. Status code: {response.status_code}")
         print(response.json())
+
+
+def calculate_file_hash(file_path):
+    sha256_hash = hashlib.sha256()
+
+    with open(file_path, "rb") as f:
+        # Lire le fichier par blocs et mettre à jour le hachage
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+
+    return sha256_hash.hexdigest()
 
 
 if __name__ == "__main__":

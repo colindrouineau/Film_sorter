@@ -50,7 +50,17 @@ def is_in_table(db_name, table_name, columns, row_id):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    return session.query(User).filter(User.Film_title == row_id).first() is not None
+    return session.query(User).filter(User.Film_hash == row_id).first() is not None
+
+
+def film_title_in_table(db_name, table_name, columns, film_title):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    # Créer une session
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    return session.query(User).filter(User.Film_title == film_title).first() is not None
+
 
 
 # columns = columns title, questions. Only corresponding questions should be selected
