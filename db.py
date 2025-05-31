@@ -204,3 +204,29 @@ def get_row_film_hash(db_name, table_name, columns, film_hash):
     film_row = session.query(User).where(User.Film_hash == film_hash).first()
     session.close()
     return film_row
+
+
+def change_row(db_name, table_name, columns, row_id, attribute, new_attribute_value, test=False):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    try:
+        # Query the row you want to update
+        row = session.query(User).filter_by(Film_hash=row_id).first()
+
+        if row:
+            # Dynamically set the attribute
+            if hasattr(row, attribute):
+                setattr(row, attribute, new_attribute_value)
+                session.commit()
+                if test:
+                    print(f"Row {row_id} updated successfully.")
+            elif test:
+                print(f"Attribute '{attribute}' does not exist.")
+        elif test:
+            print(f"Row with id {row_id} not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        session.rollback()
+    finally:
+        session.close()
