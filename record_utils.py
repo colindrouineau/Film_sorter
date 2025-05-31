@@ -202,10 +202,15 @@ def register(film_path, disk_number):
         ", ".join(subtitles),
         old_film_title,
     ]
-    
-    if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_hash):
+    if db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_hash):
+        other_film = db.get_row_film_hash(DB_NAME, TABLE_NAME, COLUMNS, film_hash)
+        if other_film.Film_title != new_film_title:
+            
+    else:
         if db.film_title_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
-            other_film = db.get_row(DB_NAME, TABLE_NAME, COLUMNS, new_film_title)
+            other_film = db.get_row_film_title(
+                DB_NAME, TABLE_NAME, COLUMNS, new_film_title
+            )
             other_film_disk = other_film.Disk_number
             new_film_title = "Disk " + disk_number + " : " + new_film_title + "(2)"
             row[1] = new_film_title

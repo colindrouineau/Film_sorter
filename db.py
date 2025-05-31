@@ -62,7 +62,6 @@ def film_title_in_table(db_name, table_name, columns, film_title):
     return session.query(User).filter(User.Film_title == film_title).first() is not None
 
 
-
 # columns = columns title, questions. Only corresponding questions should be selected
 # row = answers
 def add_row(db_name, table_name, columns, row):
@@ -187,11 +186,21 @@ def delete_row(db_name, table_name, columns, film_title):
 
 
 # Renvoie une instance de la calsse User.
-def get_row(db_name, table_name, columns, film_title):
+def get_row_film_title(db_name, table_name, columns, film_title):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
     # Query the row you want to delete (e.g., by primary key)
     film_row = session.query(User).where(User.Film_title == film_title).first()
+    session.close()
+    return film_row
+
+
+def get_row_film_hash(db_name, table_name, columns, film_hash):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    # Query the row you want to delete (e.g., by primary key)
+    film_row = session.query(User).where(User.Film_hash == film_hash).first()
     session.close()
     return film_row
