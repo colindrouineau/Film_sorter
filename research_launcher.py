@@ -37,4 +37,3 @@ if __name__ == "__main__":
 
     print("Pour quitter ce programme, appuyer sur entrée.")
     end = input()
-

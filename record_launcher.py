@@ -17,7 +17,10 @@ def initialise(path_to_disk, disk_number):
 
     txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
     if os.path.isfile(txt_path):
-        assert disk_number in Disk_Numbers, "The disk should have been registered but isn't. You must have input the wrong disk_number. \n Here are the registered disk_numbers : " + str(Disk_Numbers)
+        assert disk_number in Disk_Numbers, (
+            "The disk should have been registered but isn't. You must have input the wrong disk_number. \n Here are the registered disk_numbers : "
+            + str(Disk_Numbers)
+        )
     else:
         rc.create_folder(Path(path_to_disk) / "Other")
         lines = ["Film_sorter"]
@@ -25,19 +28,16 @@ def initialise(path_to_disk, disk_number):
         lines.append("Numéro de disque : ")
         lines.append(disk_number)
         lines.append("")
-        rc.create_txt_file(txt_path, lines)
-    
+        rc.write_txt_file(txt_path, lines)
+
     current_dateTime = str(datetime.now())
     lines = ["Records : ", current_dateTime]
     rc.append_lines(txt_path, lines)
-
 
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
     # Je juge que c'est pas nécessaire : Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres),
     # Date du record
     # Name of the matching registered disk
-
-
 
     # fonction qui parcourt et arrange tout, et en même temps que le parcours, remplit la base de données
     # la fonction doit aussi écrire le fichier "testé"
@@ -94,18 +94,20 @@ def record(path_to_disk, disk_number):
 
 
 if __name__ == "__main__":
-    print("Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. Il sera réagencé et vous ne pourrez pas retourner à l'agencement initial.")
+    print(
+        "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. Il sera réagencé et vous ne pourrez pas retourner à l'agencement initial."
+    )
     print("Voulez-vous continuer ? (o/n)")
     start = input()
-    if start == "o" :
-        print('Quelle est la lettre de lecteur de votre disque dur ?')
+    if start == "o":
+        print("Quelle est la lettre de lecteur de votre disque dur ?")
         path_to_disk = Path(input().upper() + ":")
         txt_path = path_to_disk / "Other " / "Film_sorter.txt"
         if os.path.isfile(txt_path):
-            with open(txt_path, 'r') as file:
+            with open(txt_path, "r") as file:
                 contents = file.read()
                 lines = contents.splitlines()
-                disk_number = lines[3]      
+                disk_number = lines[3]
             print("Le numéro d'identification de votre disque dur est : ", disk_number)
         else:
             print("Quel est le numéro d'identification de votre disque ?")
@@ -113,16 +115,53 @@ if __name__ == "__main__":
         initialise(path_to_disk, disk_number)
         record(path_to_disk, disk_number)
 
-        print("What is the path to Film_sorter.db ?")
-        file_path = input()
-        repo_file_path = "Film_sorter.db"
-        repo_name = "Film_sorter"
-        github_username = "colindrouineau"
-        print("What is the path to the token ?")
-        token_path = input()
+        # Get the current working directory
+        current_path = os.getcwd()
+        recorded_paths_path = Path(current_path) / "recorded_paths.txt"
+        if os.path.isfile(recorded_paths_path):
+            with open(recorded_paths_path, "r") as file:
+                contents = file.read()
+                lines = contents.splitlines()
+                db_path_ok, token_path = False, False
+                if lines[0] == "db_path":
+                    db_path = lines[1]
+                    db_path_ok = True
+                if lines[0] == "token_path":
+                    token_path = lines[1]
+                    token_path_ok = True
+                if len(lines) == 4:
+                    if lines[2] == "db_path":
+                        db_path = lines[3]
+                        db_path_ok = True
+                    if lines[2] == "token_path":
+                        token_path = lines[3]
+                        token_path_ok = True
+        if not db_path_ok:
+            print("What is the path to Film_sorter.db ?")
+            db_path = input()
+            print("Voulez-vous enregistrer ce chemin ? (o/n)")
+            yesorno = input()
+            if yesorno == "o":
+                lines = ["db_path", db_path]
+                rc.write_txt_file(recorded_paths_path, lines)
+        if not token_path_ok:
+            print("What is the path to the token ?")
+            token_path = input()
+            print("Voulez-vous enregistrer ce chemin ? (o/n)")
+            yesorno = input()
+            if yesorno == "o":
+                lines = ["token_path", token_path]
+                rc.write_txt_file(recorded_paths_path, lines)
+
         with open(token_path, "r") as file:
             github_token = file.read()
 
-        rc.update_to_github(file_path, repo_file_path, repo_name, github_username, github_token)
+        repo_file_path = "Film_sorter.db"
+        repo_name = "Film_sorter"
+        github_username = "colindrouineau"
+        rc.update_to_github(
+            db_path, repo_file_path, repo_name, github_username, github_token
+        )
+
     else:
         print("Nous espérons vous revoir bientôt.")

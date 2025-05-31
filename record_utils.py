@@ -7,6 +7,8 @@ import db
 from pathlib import Path
 from utils import coloured_print as cprint
 from research_utils import significant_beginning
+import requests
+import base64
 
 
 def convert_milliseconds(milliseconds):
@@ -103,14 +105,14 @@ def create_folder(folder_path, test=False):
     except Exception as e:
         print(f"An error occurred while creating the folder: {e}")
 
-    
-def create_txt_file(txt_path, lines, test=False):
+
+def write_txt_file(txt_path, lines, test=False):
     try:
         if os.path.isfile(txt_path):
             print(f"Folder {txt_path} already exists")
         else:
             # Open the file in write mode and automatically close it using 'with'
-            with open(txt_path, 'w') as file:
+            with open(txt_path, "w") as file:
                 for line in lines:
                     file.write(line + "\n")
                 if test:
@@ -120,10 +122,10 @@ def create_txt_file(txt_path, lines, test=False):
         print(f"An error occurred while creating the folder: {e}")
 
 
-def append_lines(txt_path, lines, test = False):
+def append_lines(txt_path, lines, test=False):
     try:  # if os.path.isfile(file_path):
         # Open the file in write mode and automatically close it using 'with'
-        with open(txt_path, 'a') as file:
+        with open(txt_path, "a") as file:
             for line in lines:
                 file.write(line + "\n")
             if test:
@@ -195,7 +197,7 @@ def register(film_path, disk_number):
         vost,
         ", ".join(languages),
         ", ".join(subtitles),
-        old_film_title
+        old_film_title,
     ]
     row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
     if not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
@@ -204,7 +206,9 @@ def register(film_path, disk_number):
         other_film = db.get_row(DB_NAME, TABLE_NAME, COLUMNS, new_film_title)
         other_film_disk = other_film.Disk_number
         double_name = "Disk " + disk_number + " : " + new_film_title
-        if other_film_disk != disk_number and not db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, double_name):
+        if other_film_disk != disk_number and not db.is_in_table(
+            DB_NAME, TABLE_NAME, COLUMNS, double_name
+        ):
             row[0][0] = double_name
             db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
@@ -234,20 +238,17 @@ def simple_treater(file_path, disk_number, path_to_disk):
         move_and_rename_file(file_path, Path(path_to_disk) / "Other" / file_title)
 
 
-import requests
-import base64
-import os
-
-
-def update_to_github(file_path, repo_file_path, repo_name, github_username, github_token):
+def update_to_github(
+    file_path, repo_file_path, repo_name, github_username, github_token
+):
 
     # GitHub API endpoint to get the existing file details
-    file_url = f'https://api.github.com/repos/{github_username}/{repo_name}/contents/{repo_file_path}'
+    file_url = f"https://api.github.com/repos/{github_username}/{repo_name}/contents/{repo_file_path}"
     print(file_url)
     # Headers for the request
     headers = {
-        'Authorization': f'token {github_token}',
-        'Accept': 'application/vnd.github.v3+json'
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
     }
 
     # First, get the existing file details to obtain the SHA
@@ -255,17 +256,17 @@ def update_to_github(file_path, repo_file_path, repo_name, github_username, gith
 
     if response.status_code == 200:
         file_details = response.json()
-        file_sha = file_details['sha']
+        file_sha = file_details["sha"]
 
         # Read the .db file content in binary mode and encode it in base64
-        with open(file_path, 'rb') as file:
+        with open(file_path, "rb") as file:
             db_content = file.read()
-        db_content_base64 = base64.b64encode(db_content).decode('utf-8')
+        db_content_base64 = base64.b64encode(db_content).decode("utf-8")
         # Data for the request to update the file
         data = {
-            'message': 'Update .db file using Python',
-            'content': db_content_base64,
-            'sha': file_sha  # Include the SHA of the existing file
+            "message": "Update .db file using Python",
+            "content": db_content_base64,
+            "sha": file_sha,  # Include the SHA of the existing file
         }
 
         # Make a PUT request to update the .db file
@@ -279,7 +280,6 @@ def update_to_github(file_path, repo_file_path, repo_name, github_username, gith
     else:
         print(f"Failed to get file details. Status code: {response.status_code}")
         print(response.json())
-
 
 
 if __name__ == "__main__":
