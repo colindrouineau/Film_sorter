@@ -11,7 +11,6 @@ from sqlalchemy import (
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from research_utils import significant_str_distance
-from record_utils import text_formatter
 from utils import coloured_print as cprint, hms_to_tuple
 from CONFIG import *
 
@@ -50,7 +49,7 @@ def is_in_table(db_name, table_name, columns, row_id):
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    return session.query(User).filter(User.Film_hash == row_id).first() is not None
+    return session.query(User).filter(User.Film_metadata == row_id).first() is not None
 
 
 def film_title_in_table(db_name, table_name, columns, film_title):
@@ -93,7 +92,9 @@ def add_row(db_name, table_name, columns, row):
 # Il me semble que ça renvoie les lignes sous la forme d'une liste.
 def user_query(db_name, table_name, columns, film_title=None, film_duration=None):
     if film_duration == None:
-        film_duration = "0h, 10h"
+        film_duration = [(0, 0, 0), (10, 0, 0)]
+    else:
+        film_duration = [hms_to_tuple(film_duration[0]), hms_to_tuple(film_duration[1])]
 
     engine, _, User = define_classe(db_name, columns, table_name)
 
@@ -104,23 +105,27 @@ def user_query(db_name, table_name, columns, film_title=None, film_duration=None
     request_result = [
         user
         for user in request_result
-        if hms_to_tuple(user.Film_duration) > hms_to_tuple(film_duration[0])
-        and hms_to_tuple(user.Film_duration) < hms_to_tuple(film_duration[1])
+        if hms_to_tuple(user.Film_duration) > film_duration[0]
+        and hms_to_tuple(user.Film_duration) < film_duration[1]
     ]
-
-    if film_title != None:
+    request_result = sorted(
+        request_result, key=lambda user: hms_to_tuple(user.Film_duration)
+    )
+    if film_title == None:
+        selected_request_result = request_result
+    else:
         request_result = sorted(
             request_result,
             key=lambda user: significant_str_distance(user.Film_title, film_title),
             reverse=True,
         )
-        selected_request_result = request_result[: min(len(request_result) - 1, 3)]
+        selected_request_result = request_result[: min(len(request_result), 3)]
         i = 0
         while (
             3 + i < len(request_result)
-            and significant_str_distance(request_result[3 + i].Film_title, film_title)
-            - significant_str_distance(request_result[0].Film_title, film_title)
-            <= 0.1
+            and significant_str_distance(request_result[0].Film_title, film_title)
+            - significant_str_distance(request_result[3 + i].Film_title, film_title)
+            <= 10
         ):
             selected_request_result.append(request_result[3 + i])
             i += 1
@@ -196,23 +201,25 @@ def get_row_film_title(db_name, table_name, columns, film_title):
     return film_row
 
 
-def get_row_film_hash(db_name, table_name, columns, film_hash):
+def get_row_film_metadata(db_name, table_name, columns, film_metadata):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
     # Query the row you want to delete (e.g., by primary key)
-    film_row = session.query(User).where(User.Film_hash == film_hash).first()
+    film_row = session.query(User).where(User.Film_metadata == film_metadata).first()
     session.close()
     return film_row
 
 
-def change_row(db_name, table_name, columns, row_id, attribute, new_attribute_value, test=False):
+def change_row(
+    db_name, table_name, columns, row_id, attribute, new_attribute_value, test=False
+):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
     try:
         # Query the row you want to update
-        row = session.query(User).filter_by(Film_hash=row_id).first()
+        row = session.query(User).filter_by(Film_metadata=row_id).first()
 
         if row:
             # Dynamically set the attribute

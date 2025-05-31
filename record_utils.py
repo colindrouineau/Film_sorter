@@ -9,7 +9,7 @@ from utils import coloured_print as cprint
 from research_utils import significant_beginning
 import requests
 import base64
-import hashlib
+import time
 
 
 def convert_milliseconds(milliseconds):
@@ -79,7 +79,6 @@ def text_formatter(text, test=False):
 def move_and_rename_file(source_path, destination_path, test=False):
     try:
         # Move and rename the file
-
         shutil.move(source_path, destination_path)
         if test:
             print(
@@ -90,6 +89,7 @@ def move_and_rename_file(source_path, destination_path, test=False):
     except PermissionError:
         print(f"Error: Permission denied when trying to move {source_path}.")
     except Exception as e:
+        print(source_path, destination_path)
         print(f"An unexpected error occurred: {e}")
 
 
@@ -186,14 +186,15 @@ def register(film_path, disk_number):
     duration, languages, subtitles = extract_video_metadata(film_path)
 
     film_path = Path(film_path)
-    film_hash = calculate_file_hash(film_path)
+    film_metadata = get_file_metadata(film_path)
+    film_metadata = film_metadata + "   " + duration
 
     old_film_title = film_path.name
     new_film_title = text_formatter(old_film_title)
     vost = is_vost(languages, subtitles)
 
     row = [
-        film_hash,
+        film_metadata,
         new_film_title,
         disk_number,
         duration,
@@ -202,19 +203,30 @@ def register(film_path, disk_number):
         ", ".join(subtitles),
         old_film_title,
     ]
-    if db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_hash):
-        old_film = db.get_row_film_hash(DB_NAME, TABLE_NAME, COLUMNS, film_hash)
-        if old_film.Film_title != new_film_title:
-            db.change_row(DB_NAME, TABLE_NAME, COLUMNS, film_hash, "Film_title", new_film_title)
-    else:
-        if db.film_title_in_table(DB_NAME, TABLE_NAME, COLUMNS, new_film_title):
-            old_film = db.get_row_film_title(
-                DB_NAME, TABLE_NAME, COLUMNS, new_film_title
+
+    if db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_metadata):
+        old_film = db.get_row_film_metadata(DB_NAME, TABLE_NAME, COLUMNS, film_metadata)
+        if old_film.Film_title != new_film_title and old_film.Disk_number == disk_number:
+            db.change_row(
+                DB_NAME,
+                TABLE_NAME,
+                COLUMNS,
+                film_metadata,
+                "Film_title",
+                new_film_title,
             )
-            new_film_title = "Disk " + disk_number + " : " + new_film_title + "(2)"
-            row[1] = new_film_title
-            row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
-            db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
+        if old_film.Disk_number != disk_number:
+            db.change_row(
+                DB_NAME,
+                TABLE_NAME,
+                COLUMNS,
+                film_metadata,
+                "Disk_number",
+                old_film.Disk_number + ", " + disk_number,
+            )
+    else:
+        row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
+        db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
     return old_film_title, new_film_title
 
@@ -233,13 +245,16 @@ def register(film_path, disk_number):
 # No test of valid using for the
 
 
-def simple_treater(file_path, disk_number, path_to_disk):
+def simple_treater(file_path, disk_number, path_to_disk, reorganise=True):
     if is_film(file_path):
         _, new_film_title = register(file_path, disk_number)
-        move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
+        print(new_film_title)
+        if reorganise:
+            move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
     elif file_path.name != "Other":
         file_title = Path(file_path).name  # Works also on folders
-        move_and_rename_file(file_path, Path(path_to_disk) / "Other" / file_title)
+        if reorganise:
+            move_and_rename_file(file_path, Path(path_to_disk) / "Other" / file_title)
 
 
 def update_to_github(
@@ -285,15 +300,15 @@ def update_to_github(
         print(response.json())
 
 
-def calculate_file_hash(file_path):
-    sha256_hash = hashlib.sha256()
+def get_file_metadata(file_path):
+    # Récupérer les métadonnées du fichier
+    stat_info = os.stat(file_path)
 
-    with open(file_path, "rb") as f:
-        # Lire le fichier par blocs et mettre à jour le hachage
-        for byte_block in iter(lambda: f.read(4096), b""):
-            sha256_hash.update(byte_block)
+    metadata = {
+        "taille": stat_info.st_size,
+    }
 
-    return sha256_hash.hexdigest()
+    return str(metadata["taille"])
 
 
 if __name__ == "__main__":

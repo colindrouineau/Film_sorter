@@ -7,9 +7,6 @@ def significant_beginning(text, test=False):
     text = punctuation_split(text.lower())
     if text[-1] in POSSIBLE_EXTENSIONS:  # On enlève l'extension
         text.pop()
-    # On enlève le "Disk disk_number"
-    if text[0] == "Disk":
-        text = text[2:]
     n_sig_words = 0
     i = 0
     last_recorded = 0

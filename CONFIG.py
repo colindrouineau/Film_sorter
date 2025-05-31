@@ -5,7 +5,7 @@ DB_NAME = "Film_sorter"
 # Languages = "French, English, Russian" for ex
 # Film_duration = 2 h 50 m 41 s
 COLUMNS = [
-    ["Film_hash", String],
+    ["Film_metadata", String],
     ["Film_title", String],
     ["Disk_number", String],
     ["Film_duration", String],

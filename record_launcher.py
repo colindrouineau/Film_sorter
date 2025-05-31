@@ -14,13 +14,15 @@ def initialise(path_to_disk, disk_number):
     )  # Creation of the db if not already there
 
     Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
-
+    Disk_Numbers = list(set(Disk_Numbers))
     txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
     if os.path.isfile(txt_path):
-        assert disk_number in Disk_Numbers, (
-            "The disk should have been registered but isn't. You must have input the wrong disk_number. \n Here are the registered disk_numbers : "
+        if disk_number not in Disk_Numbers:
+            warning = (
+            "You have no film recorded for this disk. \nHere are the registered disk_numbers : "
             + str(Disk_Numbers)
         )
+            u.coloured_print(warning, "red")
     else:
         rc.create_folder(Path(path_to_disk) / "Other")
         lines = ["Film_sorter"]
@@ -28,10 +30,11 @@ def initialise(path_to_disk, disk_number):
         lines.append("Numéro de disque : ")
         lines.append(disk_number)
         lines.append("")
+        lines.append("Records : ")
         rc.write_txt_file(txt_path, lines)
 
-    current_dateTime = str(datetime.now())
-    lines = ["Records : ", current_dateTime]
+    current_dateTime = str(datetime.now())[:-7]
+    lines = [current_dateTime]
     rc.append_lines(txt_path, lines)
 
     # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
@@ -46,7 +49,7 @@ def initialise(path_to_disk, disk_number):
     # et un deuxième passage où on balance tout ce qu'est pas film dans Other
 
 
-def record(path_to_disk, disk_number):
+def record(path_to_disk, disk_number, reorganise=True):
     recorded_films = []
 
     # List all files and directories in the specified path
@@ -58,10 +61,8 @@ def record(path_to_disk, disk_number):
         treated_path = pile.pop()
         if rc.is_film(treated_path):
             film_name = rc.text_formatter(treated_path.name)
-            other_disk_film_name = "Disk " + disk_number + " : " + film_name
             recorded_films.append(film_name)
-            recorded_films.append(other_disk_film_name)
-            rc.simple_treater(treated_path, disk_number, path_to_disk)
+            rc.simple_treater(treated_path, disk_number, path_to_disk, reorganise=reorganise)
         elif os.path.isdir(treated_path):
             entries = os.listdir(treated_path)
             pile += [treated_path / entry for entry in entries]
@@ -79,50 +80,49 @@ def record(path_to_disk, disk_number):
     # Delete if 2 names of the same film for one disk
     disk_films = db.disk_number_query(DB_NAME, TABLE_NAME, COLUMNS, disk_number)
     for film_title in disk_films:
-        disked = "Disk " + disk_number + " : " + film_title
-        undisked = (
-            film_title[8 + len(disk_number) :]
-            if len(film_title) > 8 + len(disk_number)
-            else None
-        )
         if film_title not in recorded_films:
-            db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)
-        elif disked in disk_films and film_title in disk_films:
-            db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, disked)
-        elif undisked in disk_films and film_title in disk_films:
             db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)
 
 
 if __name__ == "__main__":
+    # Get the current working directory
+    current_path = os.getcwd()
+
     print(
-        "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. Il sera réagencé et vous ne pourrez pas retourner à l'agencement initial."
+        "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. \nIl sera réagencé et vous ne pourrez pas retourner à l'agencement initial."
     )
     print("Voulez-vous continuer ? (o/n)")
     start = input()
     if start == "o":
-        print("Quelle est la lettre de lecteur de votre disque dur ?")
-        path_to_disk = Path(input().upper() + ":")
-        txt_path = path_to_disk / "Other " / "Film_sorter.txt"
+        print("Voulez-vous réorganiser votre disque dur (mettre tous les films à la racine et tout le reste dans un dossier) ? (o/n)")
+        reorganise = True if input() == "o" else False
+        print(
+            "Quelle est la lettre de lecteur de votre disque dur ? (ou le chemin absolu de votre disque dur)"
+        )
+        path_to_disk = input()
+        if len(path_to_disk) == 1:
+            path_to_disk = Path(path_to_disk.upper() + ":")
+        else:
+            path_to_disk = Path(path_to_disk)
+        txt_path = path_to_disk / "Other" / "Film_sorter.txt"
         if os.path.isfile(txt_path):
             with open(txt_path, "r") as file:
                 contents = file.read()
                 lines = contents.splitlines()
                 disk_number = lines[3]
-            print("Le numéro d'identification de votre disque dur est : ", disk_number)
+            print("Le numéro d'identification de votre disque dur est :", disk_number)
         else:
             print("Quel est le numéro d'identification de votre disque ?")
             disk_number = input()
         initialise(path_to_disk, disk_number)
-        record(path_to_disk, disk_number)
+        record(path_to_disk, disk_number, reorganise=reorganise)
 
-        # Get the current working directory
-        current_path = os.getcwd()
         recorded_paths_path = Path(current_path) / "recorded_paths.txt"
+        db_path_ok, token_path_ok = False, False
         if os.path.isfile(recorded_paths_path):
             with open(recorded_paths_path, "r") as file:
                 contents = file.read()
                 lines = contents.splitlines()
-                db_path_ok, token_path = False, False
                 if lines[0] == "db_path":
                     db_path = lines[1]
                     db_path_ok = True
@@ -136,7 +136,9 @@ if __name__ == "__main__":
                     if lines[2] == "token_path":
                         token_path = lines[3]
                         token_path_ok = True
-        if not db_path_ok:
+        if os.path.isfile(Path(current_path) / "Film_sorter.db"):
+            db_path = Path(current_path) / "Film_sorter.db"
+        elif not db_path_ok:
             print("What is the path to Film_sorter.db ?")
             db_path = input()
             print("Voulez-vous enregistrer ce chemin ? (o/n)")
@@ -162,6 +164,10 @@ if __name__ == "__main__":
         rc.update_to_github(
             db_path, repo_file_path, repo_name, github_username, github_token
         )
+        print("Pour quitter ce programme, appuyer sur entrée.")
+        end = input()
 
     else:
         print("Nous espérons vous revoir bientôt.")
+        print("Pour quitter ce programme, appuyer sur entrée.")
+        end = input()
