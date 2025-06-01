@@ -14,7 +14,12 @@ def initialise(path_to_disk, disk_number):
     )  # Creation of the db if not already there
 
     Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
-    Disk_Numbers = list(set(Disk_Numbers))
+    Disk_Numbers = [disks.split(", ") for disks in Disk_Numbers]
+    flattened_disk_numbers = []
+    for disks in Disk_Numbers:
+        for disk in disks:
+            flattened_disk_numbers.append(disk)
+    Disk_Numbers = list(set(flattened_disk_numbers))
     txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
     if os.path.isfile(txt_path):
         if disk_number not in Disk_Numbers:
@@ -64,17 +69,29 @@ def record(path_to_disk, disk_number, reorganise=True):
             recorded_films.append(film_name)
             rc.simple_treater(treated_path, disk_number, path_to_disk, reorganise=reorganise)
         elif os.path.isdir(treated_path):
-            entries = os.listdir(treated_path)
+            try:
+                entries = os.listdir(treated_path)
+            except PermissionError:
+                print(f"Permission refusée pour le dossier {treated_path}")
+                entries = []
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
+                entries = []
+            
             pile += [treated_path / entry for entry in entries]
 
     # Second
     entries = os.listdir(path_to_disk)
-
     pile = [path_to_disk / entry for entry in entries]
     while len(pile) > 0:
         treated_path = pile.pop()
         if not rc.is_film(treated_path):
-            rc.simple_treater(treated_path, disk_number, path_to_disk)
+            try:
+                rc.simple_treater(treated_path, disk_number, path_to_disk, reorganise=reorganise)
+            except PermissionError:
+                print(f"Permission refusée pour le dossier {treated_path}")
+            except Exception as e:
+                print(f"An unexpected error occurred: {e}")
 
     # Delete if it was deleted on the considered disk.
     # Delete if 2 names of the same film for one disk
@@ -89,13 +106,17 @@ if __name__ == "__main__":
     current_path = os.getcwd()
 
     print(
-        "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. \nIl sera réagencé et vous ne pourrez pas retourner à l'agencement initial."
+        "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. \nIl sera potentiellement réagencé et vous ne pourrez pas retourner à l'agencement initial."
     )
     print("Voulez-vous continuer ? (o/n)")
     start = input()
     if start == "o":
-        print("Voulez-vous réorganiser votre disque dur (mettre tous les films à la racine et tout le reste dans un dossier) ? (o/n)")
+        print("Voulez-vous réorganiser votre disque dur (mettre tous les films à la racine et tout le reste dans un dossier 'Other') ? (o/n)")
         reorganise = True if input() == "o" else False
+        if reorganise:
+            u.coloured_print("Vous vous apprêtez à réorganiser votre disque dur. Cette action est irréversible.\nSi vous voulez réorganiser, écrivez 'réorganiser'", colour='RED')
+            if input() not in ['réorganiser', "'réorganiser'"]:
+                reorganise = False
         print(
             "Quelle est la lettre de lecteur de votre disque dur ? (ou le chemin absolu de votre disque dur)"
         )
@@ -104,6 +125,8 @@ if __name__ == "__main__":
             path_to_disk = Path(path_to_disk.upper() + ":")
         else:
             path_to_disk = Path(path_to_disk)
+        if not os.path.isdir(path_to_disk):
+            raise Exception("No folder or disk was found for this path.")
         txt_path = path_to_disk / "Other" / "Film_sorter.txt"
         if os.path.isfile(txt_path):
             with open(txt_path, "r") as file:

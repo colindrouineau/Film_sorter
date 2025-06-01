@@ -215,7 +215,7 @@ def register(film_path, disk_number):
                 "Film_title",
                 new_film_title,
             )
-        if old_film.Disk_number != disk_number:
+        if disk_number not in old_film.Disk_number.split(", "):
             db.change_row(
                 DB_NAME,
                 TABLE_NAME,
@@ -249,6 +249,7 @@ def simple_treater(file_path, disk_number, path_to_disk, reorganise=True):
     if is_film(file_path):
         _, new_film_title = register(file_path, disk_number)
         print(new_film_title)
+        print('Path : ', file_path, '\n')
         if reorganise:
             move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
     elif file_path.name != "Other":
