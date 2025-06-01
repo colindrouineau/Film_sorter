@@ -165,25 +165,40 @@ def get_column_as_list(db_name, table_name, columns, column_name):
     return column_values
 
 
-def disk_number_query(db_name, table_name, columns, disk_number):
+def delete_missing_films(db_name, table_name, columns, disk_number, recorded_films):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
-
-    result = (
-        session.query(User.Film_title).filter(User.Disk_number == disk_number).all()
-    )
+    result = session.query(User).all()
     session.close()
 
-    return [result[i][0] for i in range(len(result))]
+    for user in result:
+        splitted = user.Disk_number.split(", ")
+        if disk_number in splitted:
+            if user.Film_metadata not in recorded_films:
+                if len(splitted) == 1:
+                    delete_row(db_name, table_name, columns, user.Film_metadata)
+                else:
+                    new_disk_number = [dn for dn in splitted if dn != disk_number]
+                    new_disk_number = ", ".join(new_disk_number)
+                    change_row(
+                        db_name,
+                        table_name,
+                        columns,
+                        user.Film_metadata,
+                        "Disk_number",
+                        new_disk_number,
+                    )
 
 
-def delete_row(db_name, table_name, columns, film_title):
+def delete_row(db_name, table_name, columns, film_metadata):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)
     session = Session()
     # Query the row you want to delete (e.g., by primary key)
-    film_to_delete = session.query(User).where(User.Film_title == film_title).first()
+    film_to_delete = (
+        session.query(User).where(User.Film_metadata == film_metadata).first()
+    )
     if film_to_delete:
         session.delete(film_to_delete)
         session.commit()

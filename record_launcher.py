@@ -24,9 +24,9 @@ def initialise(path_to_disk, disk_number):
     if os.path.isfile(txt_path):
         if disk_number not in Disk_Numbers:
             warning = (
-            "You have no film recorded for this disk. \nHere are the registered disk_numbers : "
-            + str(Disk_Numbers)
-        )
+                "You have no film recorded for this disk. \nHere are the registered disk_numbers : "
+                + str(Disk_Numbers)
+            )
             u.coloured_print(warning, "red")
     else:
         rc.create_folder(Path(path_to_disk) / "Other")
@@ -65,9 +65,11 @@ def record(path_to_disk, disk_number, reorganise=True):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
-            film_name = rc.text_formatter(treated_path.name)
-            recorded_films.append(film_name)
-            rc.simple_treater(treated_path, disk_number, path_to_disk, reorganise=reorganise)
+            film_metadata = rc.simple_treater(
+                treated_path, disk_number, path_to_disk, reorganise=reorganise
+            )
+            recorded_films.append(film_metadata)
+
         elif os.path.isdir(treated_path):
             try:
                 entries = os.listdir(treated_path)
@@ -75,10 +77,14 @@ def record(path_to_disk, disk_number, reorganise=True):
                 print(f"Permission refusée pour le dossier {treated_path}")
                 entries = []
             except Exception as e:
-                print(f"An unexpected error occurred: {e}")
+                print(f"RECORD, FIRST : An unexpected error occurred: {e}")
                 entries = []
-            
+
             pile += [treated_path / entry for entry in entries]
+
+    # Delete if it was deleted on the considered disk.
+    # Delete if 2 names of the same film for one disk
+    db.delete_missing_films(DB_NAME, TABLE_NAME, COLUMNS, disk_number, recorded_films)
 
     # Second
     entries = os.listdir(path_to_disk)
@@ -87,23 +93,27 @@ def record(path_to_disk, disk_number, reorganise=True):
         treated_path = pile.pop()
         if not rc.is_film(treated_path):
             try:
-                rc.simple_treater(treated_path, disk_number, path_to_disk, reorganise=reorganise)
+                rc.simple_treater(
+                    treated_path, disk_number, path_to_disk, reorganise=reorganise
+                )
             except PermissionError:
                 print(f"Permission refusée pour le dossier {treated_path}")
             except Exception as e:
-                print(f"An unexpected error occurred: {e}")
-
-    # Delete if it was deleted on the considered disk.
-    # Delete if 2 names of the same film for one disk
-    disk_films = db.disk_number_query(DB_NAME, TABLE_NAME, COLUMNS, disk_number)
-    for film_title in disk_films:
-        if film_title not in recorded_films:
-            db.delete_row(DB_NAME, TABLE_NAME, COLUMNS, film_title)
+                print(f"RECORD, SECOND : An unexpected error occurred: {e}")
 
 
 if __name__ == "__main__":
     # Get the current working directory
     current_path = os.getcwd()
+    u.coloured_print("Bonjour, vous êtes sur l'outil Film_sorter, pour trier vos films.")
+    print(
+        "Quelle est la lettre de lecteur de votre disque dur ? (ou le chemin absolu de votre disque dur)"
+    )
+    path_to_disk = input()
+    if len(path_to_disk) == 1:
+        path_to_disk = Path(path_to_disk.upper() + ":")
+    else:
+        path_to_disk = Path(path_to_disk)
 
     print(
         "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. \nIl sera potentiellement réagencé et vous ne pourrez pas retourner à l'agencement initial."
@@ -111,20 +121,18 @@ if __name__ == "__main__":
     print("Voulez-vous continuer ? (o/n)")
     start = input()
     if start == "o":
-        print("Voulez-vous réorganiser votre disque dur (mettre tous les films à la racine et tout le reste dans un dossier 'Other') ? (o/n)")
+        print(
+            f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films à la racine et tout le reste dans un dossier 'Other') ? (o/n)"
+        )
         reorganise = True if input() == "o" else False
         if reorganise:
-            u.coloured_print("Vous vous apprêtez à réorganiser votre disque dur. Cette action est irréversible.\nSi vous voulez réorganiser, écrivez 'réorganiser'", colour='RED')
-            if input() not in ['réorganiser', "'réorganiser'"]:
+            u.coloured_print(
+                f"Vous vous apprêtez à réorganiser votre disque dur, {path_to_disk}. Cette action est irréversible.\nSi vous voulez réorganiser, écrivez 'réorganiser'",
+                colour="RED",
+            )
+            if input() not in ["réorganiser", "'réorganiser'"]:
                 reorganise = False
-        print(
-            "Quelle est la lettre de lecteur de votre disque dur ? (ou le chemin absolu de votre disque dur)"
-        )
-        path_to_disk = input()
-        if len(path_to_disk) == 1:
-            path_to_disk = Path(path_to_disk.upper() + ":")
-        else:
-            path_to_disk = Path(path_to_disk)
+
         if not os.path.isdir(path_to_disk):
             raise Exception("No folder or disk was found for this path.")
         txt_path = path_to_disk / "Other" / "Film_sorter.txt"

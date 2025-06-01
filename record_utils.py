@@ -206,7 +206,10 @@ def register(film_path, disk_number):
 
     if db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_metadata):
         old_film = db.get_row_film_metadata(DB_NAME, TABLE_NAME, COLUMNS, film_metadata)
-        if old_film.Film_title != new_film_title and old_film.Disk_number == disk_number:
+        if (
+            old_film.Film_title != new_film_title
+            and old_film.Disk_number.split(", ")[0] == disk_number
+        ):  # On change le titre s'il a été changé dans le disque dur initial.
             db.change_row(
                 DB_NAME,
                 TABLE_NAME,
@@ -228,7 +231,7 @@ def register(film_path, disk_number):
         row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
         db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
 
-    return old_film_title, new_film_title
+    return old_film_title, new_film_title, film_metadata
 
 
 # This function treats files when there's no group effect.
@@ -246,16 +249,18 @@ def register(film_path, disk_number):
 
 
 def simple_treater(file_path, disk_number, path_to_disk, reorganise=True):
+    film_metadata = None
     if is_film(file_path):
-        _, new_film_title = register(file_path, disk_number)
+        _, new_film_title, film_metadata = register(file_path, disk_number)
         print(new_film_title)
-        print('Path : ', file_path, '\n')
+        print("Path : ", file_path, "\n")
         if reorganise:
             move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
     elif file_path.name != "Other":
         file_title = Path(file_path).name  # Works also on folders
         if reorganise:
             move_and_rename_file(file_path, Path(path_to_disk) / "Other" / file_title)
+    return film_metadata
 
 
 def update_to_github(
