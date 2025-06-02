@@ -93,6 +93,35 @@ def move_and_rename_file(source_path, destination_path, test=False):
         print(f"An unexpected error occurred: {e}")
 
 
+def remove_path(path):
+    """
+    Supprime le fichier ou le répertoire situé au chemin spécifié.
+
+    Args:
+        path (str): Chemin vers le fichier ou le répertoire à supprimer.
+    """
+    try:
+        # Vérifier si le chemin existe
+        if not os.path.exists(path):
+            print(f"Le chemin {path} n'existe pas.")
+            return
+
+        # Supprimer un fichier
+        if os.path.isfile(path):
+            os.remove(path)
+            print(f"Le fichier {path} a été supprimé avec succès.")
+
+        # Supprimer un répertoire
+        elif os.path.isdir(path):
+            shutil.rmtree(path)
+            print(f"Le répertoire {path} a été supprimé avec succès.")
+
+    except PermissionError:
+        print(f"Permission refusée pour supprimer {path}.")
+    except Exception as e:
+        print(f"Une erreur s'est produite lors de la suppression de {path}: {e}")
+
+
 def create_folder(folder_path, test=False):
     try:  # if os.path.isfile(file_path):
         # Create the directory

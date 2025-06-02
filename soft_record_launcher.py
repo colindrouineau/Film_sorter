@@ -5,16 +5,20 @@ import utils as u
 import record_utils as rc
 from pathlib import Path
 from datetime import datetime
+import cProfile
 
 
-def soft_simple_treater(file_path, disk_number, path_to_disk):
+def soft_simple_treater(file_path, disk_number, path_to_disk, metadata_moved_film_list=[]):
     film_metadata = None
     if rc.is_film(file_path):
         _, new_film_title, film_metadata = rc.register(
             file_path, disk_number
         )
         print(new_film_title)
-        rc.move_and_rename_file(
+        if film_metadata in metadata_moved_film_list:
+            rc.remove_path(file_path)
+        else:
+            rc.move_and_rename_file(
             file_path, Path(path_to_disk) / "Film_sorter_films" / new_film_title
         )
     return film_metadata
@@ -76,7 +80,7 @@ def record(path_to_disk, disk_number):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
-            film_metadata = soft_simple_treater(treated_path, disk_number, path_to_disk)
+            film_metadata = soft_simple_treater(treated_path, disk_number, path_to_disk, metadata_moved_film_list=recorded_films)
             recorded_films.append(film_metadata)
 
         elif os.path.isdir(treated_path):
@@ -208,3 +212,8 @@ def soft_record_laucher():
 
 if __name__ == "__main__":
     soft_record_laucher()
+
+    # Test for time complexity
+    # print("profiling_name")
+    # profiling_name = input()
+    # cProfile.run('soft_record_laucher()', profiling_name + 'profile_results.prof')
