@@ -191,6 +191,21 @@ def delete_missing_films(db_name, table_name, columns, disk_number, recorded_fil
                     )
 
 
+def get_disk_metadata(db_name, table_name, columns, disk_number):
+    engine, _, User = define_classe(db_name, columns, table_name)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+    result = session.query(User).all()
+    session.close()
+
+    metadata_list = []
+    for user in result:
+        splitted = user.Disk_number.split(", ")
+        if disk_number in splitted:
+            metadata_list.append(user.Film_metadata)
+    return metadata_list
+
+
 def delete_row(db_name, table_name, columns, film_metadata):
     engine, _, User = define_classe(db_name, columns, table_name)
     Session = sessionmaker(bind=engine)

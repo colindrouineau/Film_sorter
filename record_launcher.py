@@ -58,6 +58,14 @@ def initialise(path_to_disk, disk_number):
 
 def record(path_to_disk, disk_number, reorganise=True):
     recorded_films = []
+    repo_film_list = os.listdir(path_to_disk)
+    metadata_in_film_repo = []
+    for file_path in repo_film_list:
+        film_path = Path(path_to_disk) / file_path
+        if rc.is_film(film_path):
+            duration, _, _ = rc.extract_video_metadata(film_path)
+            film_metadata = rc.get_file_metadata(film_path)
+            metadata_in_film_repo.append(film_metadata + "   " + duration)
 
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
@@ -68,7 +76,11 @@ def record(path_to_disk, disk_number, reorganise=True):
         treated_path = pile.pop()
         if rc.is_film(treated_path):
             film_metadata = rc.simple_treater(
-                treated_path, disk_number, path_to_disk, reorganise=reorganise
+                treated_path,
+                disk_number,
+                path_to_disk,
+                reorganise=reorganise,
+                metadata_moved_film_list=metadata_in_film_repo + recorded_films,
             )
             recorded_films.append(film_metadata)
 

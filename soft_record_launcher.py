@@ -16,9 +16,12 @@ def soft_simple_treater(
         _, new_film_title, film_metadata = rc.register(file_path, disk_number)
         print(new_film_title)
         if Path(file_path) != Path(path_to_disk) / "Film_sorter_films" / new_film_title:
+
             if film_metadata in metadata_moved_film_list:
                 corbeille_path = Path(path_to_disk) / "Corbeille"
-                rc.compress_and_move_to_trash(file_path, corbeille_path)
+                rc.move_and_rename_file(
+                    file_path, corbeille_path / Path(file_path).name
+                )
             else:
                 rc.move_and_rename_file(
                     file_path, Path(path_to_disk) / "Film_sorter_films" / new_film_title
@@ -33,6 +36,11 @@ def initialise(path_to_disk, disk_number):
     # Créer le répertoire de corbeille s'il n'existe pas
     if not os.path.exists(corbeille_path):
         os.makedirs(corbeille_path)
+
+    db.create_new_table(
+        DB_NAME, COLUMNS, TABLE_NAME
+    )  # Creation of the db if not already there
+
 
     rc.create_folder(Path(path_to_disk) / "Film_sorter_films")
     db.create_new_table(
@@ -77,7 +85,14 @@ def initialise(path_to_disk, disk_number):
 
 def record(path_to_disk, disk_number):
     recorded_films = []
-
+    repo_film_list = os.listdir(Path(path_to_disk) / "Film_sorter_films")
+    metadata_in_film_repo = []
+    for file_path in repo_film_list:
+        film_path = Path(path_to_disk) / "Film_sorter_films" / file_path
+        duration, _, _ = rc.extract_video_metadata(film_path)
+        film_metadata = rc.get_file_metadata(film_path)
+        metadata_in_film_repo.append(film_metadata + "   " + duration)
+    
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
 
@@ -90,7 +105,7 @@ def record(path_to_disk, disk_number):
                 treated_path,
                 disk_number,
                 path_to_disk,
-                metadata_moved_film_list=recorded_films,
+                metadata_moved_film_list=metadata_in_film_repo + recorded_films,
             )
             recorded_films.append(film_metadata)
 
