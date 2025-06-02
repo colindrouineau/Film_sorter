@@ -6,10 +6,11 @@ import utils as u
 import db
 from pathlib import Path
 from utils import coloured_print as cprint
-from research_utils import significant_beginning
 import requests
 import base64
 import time
+import zipfile
+from datetime import datetime
 
 
 def convert_milliseconds(milliseconds):
@@ -93,12 +94,12 @@ def move_and_rename_file(source_path, destination_path, test=False):
         print(f"An unexpected error occurred: {e}")
 
 
-def remove_path(path):
+def compress_and_move_to_trash(path, corbeille_path):
     """
-    Supprime le fichier ou le répertoire situé au chemin spécifié.
+    Compresse et déplace un fichier ou un répertoire vers le répertoire de corbeille.
 
     Args:
-        path (str): Chemin vers le fichier ou le répertoire à supprimer.
+        path (str): Chemin vers le fichier ou le répertoire à "supprimer".
     """
     try:
         # Vérifier si le chemin existe
@@ -106,20 +107,85 @@ def remove_path(path):
             print(f"Le chemin {path} n'existe pas.")
             return
 
-        # Supprimer un fichier
+        # Créer un nom de fichier ZIP basé sur le nom du fichier ou répertoire et l'horodatage
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        zip_filename = f"{os.path.basename(path)}_{timestamp}.zip"
+        zip_path = os.path.join(corbeille_path, zip_filename)
+
+        # Créer une archive ZIP
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            if os.path.isfile(path):
+                # Ajouter le fichier à l'archive ZIP
+                zipf.write(path, os.path.basename(path))
+            elif os.path.isdir(path):
+                # Ajouter le répertoire et son contenu à l'archive ZIP
+                for root, dirs, files in os.walk(path):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        arcname = os.path.relpath(file_path, start=path)
+                        zipf.write(file_path, arcname)
+
+        # Supprimer le fichier ou répertoire original
         if os.path.isfile(path):
             os.remove(path)
-            print(f"Le fichier {path} a été supprimé avec succès.")
-
-        # Supprimer un répertoire
         elif os.path.isdir(path):
             shutil.rmtree(path)
-            print(f"Le répertoire {path} a été supprimé avec succès.")
 
-    except PermissionError:
-        print(f"Permission refusée pour supprimer {path}.")
+        print(
+            f"Le fichier ou répertoire {path} a été compressé et déplacé vers la corbeille."
+        )
+
     except Exception as e:
-        print(f"Une erreur s'est produite lors de la suppression de {path}: {e}")
+        print(
+            f"Une erreur s'est produite lors de la compression et du déplacement de {path} vers la corbeille: {e}"
+        )
+
+
+def restore_from_trash(zip_filename, destination_origin, corbeille_path):
+    """
+    Restaure un fichier ou un répertoire depuis la corbeille vers son emplacement d'origine.
+
+    Args:
+        zip_filename (str): Nom du fichier ZIP dans la corbeille.
+        destination_origin (str): Chemin d'origine où restaurer le fichier ou répertoire.
+    """
+    try:
+        # Chemin du fichier ZIP dans la corbeille
+        zip_path = os.path.join(corbeille_path, zip_filename)
+
+        # Vérifier si le fichier ZIP existe dans la corbeille
+        if not os.path.exists(zip_path):
+            print(f"Le fichier ZIP {zip_filename} n'existe pas dans la corbeille.")
+            return
+
+        # Créer un répertoire temporaire pour extraire le contenu du ZIP
+        temp_dir = os.path.join(
+            corbeille_path, f"temp_{os.path.splitext(zip_filename)[0]}"
+        )
+        os.makedirs(temp_dir, exist_ok=True)
+
+        # Extraire le contenu du ZIP dans le répertoire temporaire
+        with zipfile.ZipFile(zip_path, "r") as zipf:
+            zipf.extractall(temp_dir)
+
+        # Déplacer le contenu extrait vers l'emplacement d'origine
+        extracted_content = os.listdir(temp_dir)
+        for item in extracted_content:
+            src = os.path.join(temp_dir, item)
+            dst = os.path.join(destination_origin, item)
+            shutil.move(src, dst)
+
+        # Supprimer le répertoire temporaire
+        shutil.rmtree(temp_dir)
+
+        print(
+            f"Le fichier ou répertoire {zip_filename} a été restauré à {destination_origin}."
+        )
+
+    except Exception as e:
+        print(
+            f"Une erreur s'est produite lors de la restauration de {zip_filename}: {e}"
+        )
 
 
 def create_folder(folder_path, test=False):
@@ -277,14 +343,18 @@ def register(film_path, disk_number, table_name=TABLE_NAME):
 # No test of valid using for the
 
 
-def simple_treater(file_path, disk_number, path_to_disk, reorganise=True):
+def simple_treater(file_path, disk_number, path_to_disk, reorganise=True, metadata_moved_film_list=[]):
     film_metadata = None
     if is_film(file_path):
         _, new_film_title, film_metadata = register(file_path, disk_number)
         print(new_film_title)
         print("Path : ", file_path, "\n")
-        if reorganise:
-            move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
+        if reorganise and Path(file_path) != Path(path_to_disk) / new_film_title:
+            if film_metadata in metadata_moved_film_list:
+                corbeille_path = Path(path_to_disk) / "Corbeille"
+                compress_and_move_to_trash(file_path, corbeille_path)
+            else:
+                move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
     elif file_path.name != "Other":
         file_title = Path(file_path).name  # Works also on folders
         if reorganise:

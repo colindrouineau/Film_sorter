@@ -8,32 +8,38 @@ from datetime import datetime
 import cProfile
 
 
-def soft_simple_treater(file_path, disk_number, path_to_disk, metadata_moved_film_list=[]):
+def soft_simple_treater(
+    file_path, disk_number, path_to_disk, metadata_moved_film_list=[]
+):
     film_metadata = None
     if rc.is_film(file_path):
-        _, new_film_title, film_metadata = rc.register(
-            file_path, disk_number
-        )
+        _, new_film_title, film_metadata = rc.register(file_path, disk_number)
         print(new_film_title)
-        if film_metadata in metadata_moved_film_list:
-            rc.remove_path(file_path)
-        else:
-            rc.move_and_rename_file(
-            file_path, Path(path_to_disk) / "Film_sorter_films" / new_film_title
-        )
+        if Path(file_path) != Path(path_to_disk) / "Film_sorter_films" / new_film_title:
+            if film_metadata in metadata_moved_film_list:
+                corbeille_path = Path(path_to_disk) / "Corbeille"
+                rc.compress_and_move_to_trash(file_path, corbeille_path)
+            else:
+                rc.move_and_rename_file(
+                    file_path, Path(path_to_disk) / "Film_sorter_films" / new_film_title
+                )
     return film_metadata
 
 
 # Renvoie True si le disque dur avait déjà été enregistré, False s'il est nouveau.
 def initialise(path_to_disk, disk_number):
+    # Chemin vers le répertoire de corbeille
+    corbeille_path = Path(path_to_disk) / "Corbeille"
+    # Créer le répertoire de corbeille s'il n'existe pas
+    if not os.path.exists(corbeille_path):
+        os.makedirs(corbeille_path)
+
     rc.create_folder(Path(path_to_disk) / "Film_sorter_films")
     db.create_new_table(
         DB_NAME, COLUMNS, TABLE_NAME
     )  # Creation of the db if not already there
 
-    Disk_Numbers = db.get_column_as_list(
-        DB_NAME, TABLE_NAME, COLUMNS, "Disk_number"
-    )
+    Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
     Disk_Numbers = [disks.split(", ") for disks in Disk_Numbers]
     Disk_Numbers = u.flatten_and_unique(Disk_Numbers)
     txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
@@ -80,7 +86,12 @@ def record(path_to_disk, disk_number):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
-            film_metadata = soft_simple_treater(treated_path, disk_number, path_to_disk, metadata_moved_film_list=recorded_films)
+            film_metadata = soft_simple_treater(
+                treated_path,
+                disk_number,
+                path_to_disk,
+                metadata_moved_film_list=recorded_films,
+            )
             recorded_films.append(film_metadata)
 
         elif os.path.isdir(treated_path):
@@ -119,8 +130,8 @@ def soft_record_laucher():
         "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. \nIl sera potentiellement réagencé et vous ne pourrez pas retourner à l'agencement initial."
     )
     u.coloured_print(
-            f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films dans un dossier 'Film_sorter_films' à la racine.)\net enregistrer vos films ? (o/n)"
-        )
+        f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films dans un dossier 'Film_sorter_films' à la racine.)\net enregistrer vos films ? (o/n)"
+    )
     start = input()
     if start == "o":
         if not os.path.isdir(path_to_disk):

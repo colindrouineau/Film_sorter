@@ -9,6 +9,12 @@ from datetime import datetime
 
 # Renvoie True si le disque dur avait déjà été enregistré, False s'il est nouveau.
 def initialise(path_to_disk, disk_number):
+    # Chemin vers le répertoire de corbeille
+    corbeille_path = Path(path_to_disk) / "Corbeille"
+    # Créer le répertoire de corbeille s'il n'existe pas
+    if not os.path.exists(corbeille_path):
+        os.makedirs(corbeille_path)
+
     db.create_new_table(
         DB_NAME, COLUMNS, TABLE_NAME
     )  # Creation of the db if not already there

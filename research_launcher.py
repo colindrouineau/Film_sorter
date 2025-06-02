@@ -3,6 +3,7 @@ from utils import coloured_print as cprint
 import db
 from CONFIG import *
 
+
 def research_launcher():
     print(
         "Quel est le titre du film que vous voulez voir ? Appuyez sur entrée pour la sélection seulement par la durée."
