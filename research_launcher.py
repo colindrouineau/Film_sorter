@@ -3,8 +3,7 @@ from utils import coloured_print as cprint
 import db
 from CONFIG import *
 
-
-if __name__ == "__main__":
+def research_launcher():
     print(
         "Quel est le titre du film que vous voulez voir ? Appuyez sur entrée pour la sélection seulement par la durée."
     )
@@ -45,3 +44,7 @@ if __name__ == "__main__":
 
     print("Pour quitter ce programme, appuyer sur entrée.")
     end = input()
+
+
+if __name__ == "__main__":
+    research_launcher()

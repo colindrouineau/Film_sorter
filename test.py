@@ -1,3 +1,4 @@
 if __name__ == '__main__':
-    if None:
-        print("hay")
+    L = [1,3,2]
+    L.pop(3)
+    print(L)

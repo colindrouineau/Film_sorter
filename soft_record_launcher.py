@@ -7,16 +7,32 @@ from pathlib import Path
 from datetime import datetime
 
 
+def soft_simple_treater(file_path, disk_number, path_to_disk):
+    film_metadata = None
+    if rc.is_film(file_path):
+        _, new_film_title, film_metadata = rc.register(
+            file_path, disk_number
+        )
+        print(new_film_title)
+        rc.move_and_rename_file(
+            file_path, Path(path_to_disk) / "Film_sorter_films" / new_film_title
+        )
+    return film_metadata
+
+
 # Renvoie True si le disque dur avait déjà été enregistré, False s'il est nouveau.
 def initialise(path_to_disk, disk_number):
+    rc.create_folder(Path(path_to_disk) / "Film_sorter_films")
     db.create_new_table(
-        DB_NAME, COLUMNS, TABLE_NAME + "2"
+        DB_NAME, COLUMNS, TABLE_NAME
     )  # Creation of the db if not already there
 
-    Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
+    Disk_Numbers = db.get_column_as_list(
+        DB_NAME, TABLE_NAME, COLUMNS, "Disk_number"
+    )
     Disk_Numbers = [disks.split(", ") for disks in Disk_Numbers]
     Disk_Numbers = u.flatten_and_unique(Disk_Numbers)
-    txt_path = Path(path_to_disk) / "Film_sorter_films" / "Film_sorter.txt"
+    txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
     if os.path.isfile(txt_path):
         if disk_number not in Disk_Numbers:
             warning = (
@@ -25,7 +41,7 @@ def initialise(path_to_disk, disk_number):
             )
             u.coloured_print(warning, "red")
     else:
-        rc.create_folder(Path(path_to_disk) / "Film_sorter_films")
+        rc.create_folder(Path(path_to_disk) / "Other")
         lines = ["Film_sorter"]
         lines.append("")
         lines.append("Numéro de disque : ")
@@ -38,7 +54,7 @@ def initialise(path_to_disk, disk_number):
     lines = [current_dateTime]
     rc.append_lines(txt_path, lines)
 
-    # How to detect it's new : mettre dans "Other" un fichier txt "testé", avec :
+    # How to detect it's new : mettre dans "Film_sorter_films" un fichier txt "testé", avec :
     # Je juge que c'est pas nécessaire : Le nombre de films dans le disque, le code pour revenir à la config initiale (ainsi que les titres),
     # Date du record
     # Name of the matching registered disk
@@ -46,11 +62,10 @@ def initialise(path_to_disk, disk_number):
     # fonction qui parcourt et arrange tout, et en même temps que le parcours, remplit la base de données
     # la fonction doit aussi écrire le fichier "testé"
 
-    # on fait un premier passage où on traite les films,
-    # et un deuxième passage où on balance tout ce qu'est pas film dans Other
+    # on fait un parcours où on traite les films et où on les met dans le dossier "Film_sorter_films" à la racine.
 
 
-def record(path_to_disk, disk_number, reorganise=True):
+def record(path_to_disk, disk_number):
     recorded_films = []
 
     # List all files and directories in the specified path
@@ -61,9 +76,7 @@ def record(path_to_disk, disk_number, reorganise=True):
     while len(pile) > 0:
         treated_path = pile.pop()
         if rc.is_film(treated_path):
-            film_metadata = rc.simple_treater(
-                treated_path, disk_number, path_to_disk, reorganise=reorganise
-            )
+            film_metadata = soft_simple_treater(treated_path, disk_number, path_to_disk)
             recorded_films.append(film_metadata)
 
         elif os.path.isdir(treated_path):
@@ -82,23 +95,8 @@ def record(path_to_disk, disk_number, reorganise=True):
     # Delete if 2 names of the same film for one disk
     db.delete_missing_films(DB_NAME, TABLE_NAME, COLUMNS, disk_number, recorded_films)
 
-    # Second
-    entries = os.listdir(path_to_disk)
-    pile = [path_to_disk / entry for entry in entries]
-    while len(pile) > 0:
-        treated_path = pile.pop()
-        if not rc.is_film(treated_path):
-            try:
-                rc.simple_treater(
-                    treated_path, disk_number, path_to_disk, reorganise=reorganise
-                )
-            except PermissionError:
-                print(f"Permission refusée pour le dossier {treated_path}")
-            except Exception as e:
-                print(f"RECORD, SECOND : An unexpected error occurred: {e}")
 
-
-if __name__ == "__main__":
+def soft_record_laucher():
     # Get the current working directory
     current_path = os.getcwd()
     u.coloured_print(
@@ -116,21 +114,11 @@ if __name__ == "__main__":
     print(
         "Vous êtes sur le point d'enregistrer votre disque dur sur Film_sorter. \nIl sera potentiellement réagencé et vous ne pourrez pas retourner à l'agencement initial."
     )
-    print("Voulez-vous continuer ? (o/n)")
+    u.coloured_print(
+            f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films dans un dossier 'Film_sorter_films' à la racine.)\net enregistrer vos films ? (o/n)"
+        )
     start = input()
     if start == "o":
-        print(
-            f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films (mettre tous les films dans un dossier 'Film_sorter_films' à la racine.) ? (o/n)"
-        )
-        reorganise = True if input() == "o" else False
-        if reorganise:
-            u.coloured_print(
-                f"Vous vous apprêtez à réorganiser votre disque dur, {path_to_disk}. Cette action est irréversible.\nSi vous voulez réorganiser, écrivez 'réorganiser'",
-                colour="RED",
-            )
-            if input() not in ["réorganiser", "'réorganiser'"]:
-                reorganise = False
-
         if not os.path.isdir(path_to_disk):
             raise Exception("No folder or disk was found for this path.")
         txt_path = path_to_disk / "Other" / "Film_sorter.txt"
@@ -160,7 +148,7 @@ if __name__ == "__main__":
                 print("Quel est le numéro d'identification de votre disque ?")
                 disk_number = input()
         initialise(path_to_disk, disk_number)
-        record(path_to_disk, disk_number, reorganise=reorganise)
+        record(path_to_disk, disk_number)
 
         recorded_paths_path = Path(current_path) / "recorded_paths.txt"
         db_path_ok, token_path_ok = False, False
@@ -216,3 +204,7 @@ if __name__ == "__main__":
         print("Nous espérons vous revoir bientôt.")
         print("Pour quitter ce programme, appuyer sur entrée.")
         end = input()
+
+
+if __name__ == "__main__":
+    soft_record_laucher()

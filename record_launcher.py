@@ -98,7 +98,7 @@ def record(path_to_disk, disk_number, reorganise=True):
                 print(f"RECORD, SECOND : An unexpected error occurred: {e}")
 
 
-if __name__ == "__main__":
+def record_launcher():
     # Get the current working directory
     current_path = os.getcwd()
     u.coloured_print(
@@ -216,3 +216,7 @@ if __name__ == "__main__":
         print("Nous espérons vous revoir bientôt.")
         print("Pour quitter ce programme, appuyer sur entrée.")
         end = input()
+
+
+if __name__ == "__main__":
+    record_launcher()

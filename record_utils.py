@@ -180,7 +180,7 @@ def is_film(file_path):
 # Register the film row in the database
 # Returns the old and new name
 # Doesn't register films that already are there
-def register(film_path, disk_number):
+def register(film_path, disk_number, table_name=TABLE_NAME):
     assert is_film(film_path), "you tried to register a file that is not a film."
 
     duration, languages, subtitles = extract_video_metadata(film_path)
@@ -204,15 +204,15 @@ def register(film_path, disk_number):
         old_film_title,
     ]
 
-    if db.is_in_table(DB_NAME, TABLE_NAME, COLUMNS, film_metadata):
-        old_film = db.get_row_film_metadata(DB_NAME, TABLE_NAME, COLUMNS, film_metadata)
+    if db.is_in_table(DB_NAME, table_name, COLUMNS, film_metadata):
+        old_film = db.get_row_film_metadata(DB_NAME, table_name, COLUMNS, film_metadata)
         if (
             old_film.Film_title != new_film_title
             and old_film.Disk_number.split(", ")[0] == disk_number
         ):  # On change le titre s'il a été changé dans le disque dur initial.
             db.change_row(
                 DB_NAME,
-                TABLE_NAME,
+                table_name,
                 COLUMNS,
                 film_metadata,
                 "Film_title",
@@ -221,7 +221,7 @@ def register(film_path, disk_number):
         if disk_number not in old_film.Disk_number.split(", "):
             db.change_row(
                 DB_NAME,
-                TABLE_NAME,
+                table_name,
                 COLUMNS,
                 film_metadata,
                 "Disk_number",
@@ -229,7 +229,7 @@ def register(film_path, disk_number):
             )
     else:
         row = [[row[i], COLUMNS[i][1]] for i in range(len(row))]
-        db.add_row(DB_NAME, TABLE_NAME, COLUMNS, row)
+        db.add_row(DB_NAME, table_name, COLUMNS, row)
 
     return old_film_title, new_film_title, film_metadata
 
