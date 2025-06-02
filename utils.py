@@ -82,5 +82,14 @@ def hms_to_tuple(hms):
     return tuple(time_tuple)
 
 
+# [[1,2,3], [1,2,0, "a"], [4,2], [5]] --> [1,2,3,0,"a",4,5]
+def flatten_and_unique(L):
+    flattened_L = []
+    for l in L:
+        for e in l:
+            flattened_L.append(e)
+    return list(set(flattened_L))
+
+
 if __name__ == "__main__":
     print(hms_to_tuple("1 , :; h ; :  4   : ! 3"))

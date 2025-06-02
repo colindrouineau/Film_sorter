@@ -10,13 +10,13 @@ from datetime import datetime
 # Renvoie True si le disque dur avait déjà été enregistré, False s'il est nouveau.
 def initialise(path_to_disk, disk_number):
     db.create_new_table(
-        DB_NAME, COLUMNS, TABLE_NAME
+        DB_NAME, COLUMNS, TABLE_NAME + "2"
     )  # Creation of the db if not already there
 
     Disk_Numbers = db.get_column_as_list(DB_NAME, TABLE_NAME, COLUMNS, "Disk_number")
     Disk_Numbers = [disks.split(", ") for disks in Disk_Numbers]
     Disk_Numbers = u.flatten_and_unique(Disk_Numbers)
-    txt_path = Path(path_to_disk) / "Other" / "Film_sorter.txt"
+    txt_path = Path(path_to_disk) / "Film_sorter_films" / "Film_sorter.txt"
     if os.path.isfile(txt_path):
         if disk_number not in Disk_Numbers:
             warning = (
@@ -25,7 +25,7 @@ def initialise(path_to_disk, disk_number):
             )
             u.coloured_print(warning, "red")
     else:
-        rc.create_folder(Path(path_to_disk) / "Other")
+        rc.create_folder(Path(path_to_disk) / "Film_sorter_films")
         lines = ["Film_sorter"]
         lines.append("")
         lines.append("Numéro de disque : ")
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     start = input()
     if start == "o":
         print(
-            f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films à la racine et tout le reste dans un dossier 'Other') ? (o/n)"
+            f"Voulez-vous réorganiser votre disque dur - {path_to_disk} - (mettre tous les films (mettre tous les films dans un dossier 'Film_sorter_films' à la racine.) ? (o/n)"
         )
         reorganise = True if input() == "o" else False
         if reorganise:
