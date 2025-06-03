@@ -87,6 +87,11 @@ def move_and_rename_file(source_path, destination_path, test=False):
         print(f"Error: The file {source_path} does not exist.")
     except PermissionError:
         print(f"Error: Permission denied when trying to move {source_path}.")
+    except FileExistsError:
+        print(
+            f"The destination path '{destination_path}' already exists. Handling the error..."
+        )
+        move_and_rename_file(source_path, Path(str(destination_path) + " (2)"))
     except Exception as e:
         print(source_path, destination_path)
         print(f"An unexpected error occurred: {e}")
@@ -255,13 +260,11 @@ def simple_treater(
         _, new_film_title, film_metadata = register(file_path, disk_number)
         print(new_film_title)
         print("Path : ", file_path, "\n")
-        
+
         if reorganise and Path(file_path) != Path(path_to_disk) / new_film_title:
             if film_metadata in metadata_moved_film_list:
                 corbeille_path = Path(path_to_disk) / "Corbeille"
-                move_and_rename_file(
-                    file_path, corbeille_path / Path(file_path).name
-                )
+                move_and_rename_file(file_path, corbeille_path / Path(file_path).name)
             else:
                 move_and_rename_file(file_path, Path(path_to_disk) / new_film_title)
     elif file_path.name not in ["Other", "Corbeille"]:
