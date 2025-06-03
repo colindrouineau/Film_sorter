@@ -199,6 +199,10 @@ def soft_record_laucher():
                     if lines[2] == "token_path":
                         token_path = lines[3]
                         token_path_ok = True
+        pb_with_db_path = db_path_ok and not os.path.isfile(db_path)
+        pb_with_token_path = token_path_ok and not os.path.isfile(token_path)
+        if pb_with_db_path or pb_with_token_path:
+            os.remove(recorded_paths_path)        
         if os.path.isfile(Path(current_path) / "Film_sorter.db"):
             db_path = Path(current_path) / "Film_sorter.db"
         elif not db_path_ok:
@@ -209,7 +213,9 @@ def soft_record_laucher():
             if yesorno == "o":
                 lines = ["db_path", db_path]
                 rc.write_txt_file(recorded_paths_path, lines)
-        if not token_path_ok:
+        if os.path.isfile(Path(current_path) / "token.txt"):
+            token_path = Path(current_path) / "token.txt"
+        elif not token_path_ok:
             print("What is the path to the token ?")
             token_path = input()
             print("Voulez-vous enregistrer ce chemin ? (o/n)")
@@ -228,7 +234,7 @@ def soft_record_laucher():
             db_path, repo_file_path, repo_name, github_username, github_token
         )
         print("Pour quitter ce programme, appuyer sur entrée.")
-        end = input()
+        input()
 
     else:
         print("Nous espérons vous revoir bientôt.")

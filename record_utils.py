@@ -9,8 +9,6 @@ from utils import coloured_print as cprint
 import requests
 import base64
 import time
-import zipfile
-from datetime import datetime
 
 
 def convert_milliseconds(milliseconds):

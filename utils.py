@@ -1,6 +1,9 @@
 import chardet
-from colorama import Fore, Style
+from colorama import Fore, Style, init
 from CONFIG import *
+
+# Initialise colorama
+init(autoreset=True)
 
 ## No longer useful because the stop word list is directly written as a str.
 # def list_from_txt(file_path):
@@ -38,7 +41,7 @@ def get_extension(file_name):
     return str(file_name).split(".")[-1]
 
 
-def coloured_print(text, colour="Blue", print_type=False):
+def coloured_print(text, colour="CYAN", print_type=False):
     object_type = type(text)
     text = str(text)
     colour = colour.upper()
