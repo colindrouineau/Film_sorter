@@ -285,10 +285,8 @@ def update_to_github(
         "Authorization": f"token {github_token}",
         "Accept": "application/vnd.github.v3+json",
     }
-
     # First, get the existing file details to obtain the SHA
     response = requests.get(file_url, headers=headers)
-
     if response.status_code == 200:
         file_details = response.json()
         file_sha = file_details["sha"]

@@ -239,7 +239,7 @@ def soft_record_laucher():
     else:
         print("Nous espérons vous revoir bientôt.")
         print("Pour quitter ce programme, appuyer sur entrée.")
-        end = input()
+        input()
 
 
 if __name__ == "__main__":

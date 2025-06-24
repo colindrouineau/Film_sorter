@@ -16,7 +16,7 @@ Le programme est intrusif, c'est à dire qu'il modifie le contenu du disque en l
 L'outil a été codé de manière à gérer correctement toutes les exceptions potentielles, mais il est possible que certaines aient été oubliées. En cas de problème ou de question sur le fonctionnement de l'outil, merci de contacter le développeur à l'addresse mail suivante : colin.drouineau@gmail.com.
 
 
-Il y a 3 fichiers .exe suffisants à l'utilisation complète de l'outil.
+Il y a 3 fichiers .exe suffisants à l'utilisation complète de l'outil. Ils sont sont situés à \Film_sorter_exes\dist
 
 1) record_launcher.exe :
   - Parcourt le disque ;
