@@ -14,9 +14,8 @@ def soft_simple_treater(
     film_metadata = None
     if rc.is_film(file_path):
         _, new_film_title, film_metadata = rc.register(file_path, disk_number)
-        print(new_film_title)
         if Path(file_path) != Path(path_to_disk) / "Film_sorter_films" / new_film_title:
-
+            print(new_film_title)
             if film_metadata in metadata_moved_film_list:
                 corbeille_path = Path(path_to_disk) / "Corbeille"
                 rc.move_and_rename_file(

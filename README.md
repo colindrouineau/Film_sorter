@@ -16,7 +16,7 @@ Le programme est intrusif, c'est à dire qu'il modifie le contenu du disque en l
 L'outil a été codé de manière à gérer correctement toutes les exceptions potentielles, mais il est possible que certaines aient été oubliées. En cas de problème ou de question sur le fonctionnement de l'outil, merci de contacter le développeur à l'addresse mail suivante : colin.drouineau@gmail.com.
 
 
-Il y a 3 fichiers .exe suffisants à l'utilisation complète de l'outil. Ils sont sont situés à \Film_sorter_exes\dist
+Il y a 3 fichiers .exe suffisants à l'utilisation complète de l'outil. Ils sont sont situés dans le dossier situé à \Film_sorter_exes\dist
 
 1) record_launcher.exe :
   - Parcourt le disque ;
@@ -38,6 +38,8 @@ Il y a 3 fichiers .exe suffisants à l'utilisation complète de l'outil. Ils son
   - Parcourt les films et affiche dans le terminal ceux qui correspondent le plus à votre recherche ;
   - Le classement est fait en fonction de la distance entre le titre entré et le titre du film ;
   - Dans le terminal sont affichés : le titre du film, la durée du film, les pistes de langage, les pistes de sous-titres.
+
+Dans ce même dossier, avec le même nom mais avec l'extension .bat, on peut lancer ces programmes dans un mode qui permet de voir le message d'erreur s'il en est : la console ne se ferme pas automatiquement.
 
 
 Nous espérons que vous aurez une bonne expérience avec Film_sorter !
