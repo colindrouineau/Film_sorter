@@ -25,6 +25,7 @@ def convert_milliseconds(milliseconds):
 
 # return duration as (hours, minutes, seconds), languages and subtitles as a list of the available ones.
 def extract_video_metadata(file_path, test=False):
+    print(file_path)  # NEW
     media_info = MediaInfo.parse(file_path)
     duration = None
     languages = []

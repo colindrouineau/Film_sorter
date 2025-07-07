@@ -15,13 +15,13 @@ def soft_simple_treater(
     if rc.is_film(file_path):
         _, new_film_title, film_metadata = rc.register(file_path, disk_number)
         if Path(file_path) != Path(path_to_disk) / "Film_sorter_films" / new_film_title:
-            print(new_film_title)
             if film_metadata in metadata_moved_film_list:
                 corbeille_path = Path(path_to_disk) / "Corbeille"
                 rc.move_and_rename_file(
                     file_path, corbeille_path / Path(file_path).name
                 )
             else:
+                print(new_film_title)
                 rc.move_and_rename_file(
                     file_path, Path(path_to_disk) / "Film_sorter_films" / new_film_title
                 )
@@ -39,7 +39,6 @@ def initialise(path_to_disk, disk_number):
     db.create_new_table(
         DB_NAME, COLUMNS, TABLE_NAME
     )  # Creation of the db if not already there
-
 
     rc.create_folder(Path(path_to_disk) / "Film_sorter_films")
     db.create_new_table(
@@ -87,11 +86,12 @@ def record(path_to_disk, disk_number):
     repo_film_list = os.listdir(Path(path_to_disk) / "Film_sorter_films")
     metadata_in_film_repo = []
     for file_path in repo_film_list:
-        film_path = Path(path_to_disk) / "Film_sorter_films" / file_path
-        duration, _, _ = rc.extract_video_metadata(film_path)
-        film_metadata = rc.get_file_metadata(film_path)
-        metadata_in_film_repo.append(film_metadata + "   " + duration)
-    
+        if rc.is_film(file_path):
+            film_path = Path(path_to_disk) / "Film_sorter_films" / file_path
+            duration, _, _ = rc.extract_video_metadata(film_path)
+            film_metadata = rc.get_file_metadata(film_path)
+            metadata_in_film_repo.append(film_metadata + "   " + duration)
+
     # List all files and directories in the specified path
     entries = os.listdir(path_to_disk)
 
@@ -115,7 +115,12 @@ def record(path_to_disk, disk_number):
                 print(f"Permission refusée pour le dossier {treated_path}")
                 entries = []
             except Exception as e:
-                print(f"RECORD, FIRST : An unexpected error occurred: {e}")
+                if len(str(treated_path)) > 200:
+                    print(
+                        f"The path to the treated file or directory is probably too long. \n It is {len(str(treated_path))} character long (not counting its entries) whereas the limitation is 260."
+                    )
+                else:
+                    print(f"RECORD, FIRST : An unexpected error occurred: {e}")
                 entries = []
 
             pile += [treated_path / entry for entry in entries]
@@ -158,9 +163,12 @@ def soft_record_laucher():
                 disk_number = lines[3]
             print("Le numéro d'identification de votre disque dur est :", disk_number)
         else:
-            Disk_Numbers = db.get_column_as_list(
-                DB_NAME, TABLE_NAME, COLUMNS, "Disk_number"
-            )
+            if os.path.isfile(Path(current_path) / (DB_NAME + ".db")):
+                Disk_Numbers = db.get_column_as_list(
+                    DB_NAME, TABLE_NAME, COLUMNS, "Disk_number"
+                )
+            else:
+                Disk_Numbers = []
             Disk_Numbers = [disks.split(", ") for disks in Disk_Numbers]
             Disk_Numbers = u.flatten_and_unique(Disk_Numbers)
             disk_number = ""
@@ -200,8 +208,10 @@ def soft_record_laucher():
                         token_path_ok = True
         pb_with_db_path = db_path_ok and not os.path.isfile(db_path)
         pb_with_token_path = token_path_ok and not os.path.isfile(token_path)
+        # if pb_with_token_path:
+        #     print("youhou\n yfrj\n df\n") #NEW
         if pb_with_db_path or pb_with_token_path:
-            os.remove(recorded_paths_path)        
+            os.remove(recorded_paths_path)
         if os.path.isfile(Path(current_path) / "Film_sorter.db"):
             db_path = Path(current_path) / "Film_sorter.db"
         elif not db_path_ok:
