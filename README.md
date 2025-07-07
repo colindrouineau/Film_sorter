@@ -18,6 +18,7 @@ L'outil a été codé de manière à gérer correctement toutes les exceptions p
 
 Il y a 3 fichiers .exe suffisants à l'utilisation complète de l'outil. Ils sont sont situés dans le dossier situé à \Film_sorter_exes\dist
 
+UPDATE : record_launcher n'est plus mis à jour. Il ne fonctionne plus. J'ai trouvé que soft_record_launcher suffisait et était le meilleur algorithme.
 1) record_launcher.exe :
   - Parcourt le disque ;
   - Enregistre les films dans la base de données ;
