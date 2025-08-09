@@ -208,8 +208,6 @@ def soft_record_laucher():
                         token_path_ok = True
         pb_with_db_path = db_path_ok and not os.path.isfile(db_path)
         pb_with_token_path = token_path_ok and not os.path.isfile(token_path)
-        # if pb_with_token_path:
-        #     print("youhou\n yfrj\n df\n") #NEW
         if pb_with_db_path or pb_with_token_path:
             os.remove(recorded_paths_path)
         if os.path.isfile(Path(current_path) / "Film_sorter.db"):
@@ -232,7 +230,6 @@ def soft_record_laucher():
             if yesorno == "o":
                 lines = ["token_path", token_path]
                 rc.write_txt_file(recorded_paths_path, lines)
-
         with open(token_path, "r") as file:
             github_token = file.read()
 

@@ -164,21 +164,19 @@ def is_video(file_path):
 
 
 def is_film(file_path):
-    file_size = os.stat(file_path).st_size
     video = is_video(file_path)
     if not video:
         return False
-    else:
-        media_info = MediaInfo.parse(file_path)
-        for track in media_info.tracks:
-            if track.track_type == "General":
-                if track.duration == None:
-                    duration = (0, 0, 0)
-                else:
-                    duration = convert_milliseconds(int(float(track.duration)))
+    file_size = os.stat(file_path).st_size
+
+    media_info = MediaInfo.parse(file_path)
+    for track in media_info.tracks:
+        if track.track_type == "General":
+            if track.duration == None:
+                duration = (0, 0, 0)
+            else:
+                duration = convert_milliseconds(int(float(track.duration)))
     return duration > (0, 30, 0) and int(file_size) > 500000000
-
-
 
 
 # Exception if it's not a film.
