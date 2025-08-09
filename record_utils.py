@@ -5,10 +5,8 @@ import shutil
 import utils as u
 import db
 from pathlib import Path
-from utils import coloured_print as cprint
 import requests
 import base64
-import time
 
 
 def convert_milliseconds(milliseconds):
@@ -25,7 +23,6 @@ def convert_milliseconds(milliseconds):
 
 # return duration as (hours, minutes, seconds), languages and subtitles as a list of the available ones.
 def extract_video_metadata(file_path, test=False):
-    print(file_path)  # NEW
     media_info = MediaInfo.parse(file_path)
     duration = None
     languages = []
@@ -167,6 +164,7 @@ def is_video(file_path):
 
 
 def is_film(file_path):
+    file_size = os.stat(file_path).st_size
     video = is_video(file_path)
     if not video:
         return False
@@ -178,7 +176,9 @@ def is_film(file_path):
                     duration = (0, 0, 0)
                 else:
                     duration = convert_milliseconds(int(float(track.duration)))
-    return duration > (0, 30, 0)
+    return duration > (0, 30, 0) and int(file_size) > 500000000
+
+
 
 
 # Exception if it's not a film.

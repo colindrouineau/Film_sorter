@@ -59,7 +59,8 @@ STOP_WORDS_FRENCH = "a, ai, aie, aies, ait, après, as, auquel, avant, avec, ava
 STOP_WORDS_ENGLISH = STOP_WORDS_ENGLISH.split(", ") + ALPHABET
 STOP_WORDS_FRENCH = STOP_WORDS_FRENCH.split(", ") + ALPHABET
 MIN_STR_DIST = 50  # à déterminer
-POSSIBLE_EXTENSIONS = "mp4, avi, mkv, mov, flv, wmv, mpeg, mpg, webm, 3gp, m4v, mts, m2ts, vob, rm, rmvb, ogv, asf, divx, xvid, ts, mxf, h264, h265"
+# It is important to use lowercase for possible extensions
+POSSIBLE_EXTENSIONS = "mp4, mk3d, avi, mkv, mov, flv, wmv, mpeg, mpg, webm, 3gp, m4v, mts, m2ts, vob, rm, rmvb, ogv, asf, divx, xvid, ts, mxf, h264, h265"
 POSSIBLE_EXTENSIONS = POSSIBLE_EXTENSIONS.split(", ")
 
 
